@@ -1,0 +1,32 @@
+# Files and folders to exclude from distribution ZIP
+# Used by GitHub Actions release workflow
+
+# Development folders
+.git/
+.github/
+.claude/
+
+# Development files
+.DS_Store
+.gitignore
+.distignore
+*.md
+!readme.txt
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-*
+
+# Testing
+tests/
+phpunit.xml
+phpcs.xml
+
+# Shell scripts
+*.sh
+
+# Other
+node_modules/
+composer.lock
+package-lock.json

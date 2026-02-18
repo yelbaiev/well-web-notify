@@ -1,0 +1,545 @@
+/**
+ * Well Web Notify — Admin Styles
+ * Uses WordPress core admin patterns and Well Web shared design language
+ */
+
+/* ============================================
+   Layout
+   ============================================ */
+
+.ww-container {
+    max-width: 1200px;
+}
+
+.ww-container-admin {
+    padding: 0;
+}
+
+.ww-h1 {
+    font-size: 23px;
+    font-weight: 400;
+    margin: 0 0 10px;
+    line-height: 1.3;
+}
+
+/* ============================================
+   Navigation (shared with SEO)
+   ============================================ */
+
+.ww-notify-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.ww-notify-menu li {
+    margin: 0;
+}
+
+.ww-notify-menu a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #50575e;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+    background: transparent;
+}
+
+.ww-notify-menu a:hover,
+.ww-notify-menu a:focus {
+    color: #1d2327;
+    background: #f0f0f1;
+}
+
+.ww-notify-menu .current a {
+    background: #fff;
+    border-color: #c3c4c7;
+    color: #1d2327;
+}
+
+/* ============================================
+   Settings Sections
+   ============================================ */
+
+.ww-settings-section {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    margin-bottom: 20px;
+}
+
+.ww-settings-section-header {
+    background: #f6f7f7;
+    border-bottom: 1px solid #c3c4c7;
+    padding: 12px 16px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ww-settings-section-header .dashicons {
+    color: #646970;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.ww-settings-section-body {
+    padding: 16px;
+}
+
+/* Collapsible sections */
+.ww-collapsible .ww-settings-section-header {
+    cursor: pointer;
+}
+
+.ww-collapsible .ww-collapse-toggle {
+    transition: transform 0.2s ease;
+}
+
+.ww-collapsible.ww-collapsed .ww-collapse-toggle {
+    transform: rotate(0deg);
+}
+
+.ww-collapsible:not(.ww-collapsed) .ww-collapse-toggle {
+    transform: rotate(90deg);
+}
+
+.ww-collapsible.ww-collapsed .ww-settings-section-body {
+    display: none;
+}
+
+/* ============================================
+   Toggle Switch
+   ============================================ */
+
+.ww-notify-toggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.ww-notify-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ww-notify-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #c3c4c7;
+    border-radius: 20px;
+    transition: background 0.2s ease;
+}
+
+.ww-notify-toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.ww-notify-toggle input:checked + .ww-notify-toggle-slider {
+    background: #2271b1;
+}
+
+.ww-notify-toggle input:checked + .ww-notify-toggle-slider::before {
+    transform: translateX(16px);
+}
+
+/* ============================================
+   Channel Status
+   ============================================ */
+
+.ww-notify-status.--configured {
+    display: inline-flex;
+    align-items: center;
+}
+
+.ww-notify-status.--configured .dashicons {
+    color: #00a32a;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.ww-notify-test-btn {
+    margin-left: 5px !important;
+}
+
+.ww-notify-test-btn.--testing {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.ww-notify-test-result {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.ww-notify-test-result.--success {
+    color: #00a32a;
+}
+
+.ww-notify-test-result.--error {
+    color: #d63638;
+}
+
+/* ============================================
+   Channel Settings
+   ============================================ */
+
+.ww-notify-channel-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ww-notify-channel-settings .ww-field-labeled {
+    display: block;
+}
+
+.ww-notify-channel-settings .ww-field-label {
+    display: block;
+    font-size: 12px;
+    color: #1d2327;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.ww-notify-channel-settings input {
+    width: 100%;
+    max-width: 400px;
+}
+
+.ww-notify-channel-settings .description {
+    font-size: 12px;
+    color: #646970;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+/* ============================================
+   Form list
+   ============================================ */
+
+.ww-notify-form-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ww-notify-form-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.ww-notify-form-list .--active .dashicons {
+    color: #00a32a;
+}
+
+.ww-notify-form-list .--inactive .dashicons {
+    color: #c3c4c7;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+
+.ww-notify-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.ww-notify-badge.--success {
+    background: #edfaef;
+    color: #00a32a;
+}
+
+.ww-notify-badge.--error {
+    background: #fcf0f1;
+    color: #d63638;
+}
+
+.ww-notify-badge.--muted {
+    background: #f0f0f1;
+    color: #646970;
+}
+
+/* ============================================
+   Log page
+   ============================================ */
+
+.ww-notify-log-filters {
+    margin-bottom: 15px;
+}
+
+.ww-notify-log-filters form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ============================================
+   API key status (shared with SEO)
+   ============================================ */
+
+.wellweb-api-key-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #f0f6fc;
+    border: 1px solid #c3c4c7;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.wellweb-api-key-status.--configured {
+    background: #edfaef;
+    border-color: #c3e6cb;
+}
+
+.wellweb-api-key-status.--configured .dashicons {
+    color: #00a32a;
+}
+
+.wellweb-api-key-status code {
+    background: transparent;
+    font-size: 12px;
+    color: inherit;
+}
+
+/* ============================================
+   Fields (shared)
+   ============================================ */
+
+.ww-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ww-field input[type="checkbox"],
+.ww-field input[type="radio"] {
+    margin: 0;
+}
+
+.ww-field-labeled {
+    display: block;
+}
+
+p.description {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #646970;
+    line-height: 1.5;
+}
+
+/* ============================================
+   Site Verification
+   ============================================ */
+
+.ww-notify-site-verify {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f1;
+}
+
+.ww-notify-verify-code {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #f0f6fc;
+    border: 1px solid #c3c4c7;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+    user-select: all;
+    cursor: pointer;
+}
+
+.ww-notify-verify-code:hover {
+    background: #e6f0fa;
+    border-color: #2271b1;
+}
+
+/* ============================================
+   Branding credits
+   ============================================ */
+
+/* ============================================
+   Pro Channel Teasers
+   ============================================ */
+
+.ww-settings-section--teaser {
+    border-style: dashed;
+    opacity: 0.7;
+}
+
+.ww-settings-section--teaser .ww-settings-section-header {
+    background: #f9f9f9;
+    border-bottom: none;
+}
+
+.ww-notify-badge.--pro {
+    background: #f0e6ff;
+    color: #6b21a8;
+}
+
+.ww-notify-pro-cta {
+    text-align: center;
+    margin: -10px 0 20px;
+    font-size: 14px;
+}
+
+.ww-notify-pro-cta a {
+    color: #6b21a8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.ww-notify-pro-cta a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   Cross-promotion
+   ============================================ */
+
+.ww-notify-cross-promo {
+    margin-top: 10px;
+}
+
+.ww-notify-promo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 782px) {
+    .ww-notify-promo-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ww-notify-promo-card {
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+.ww-notify-promo-card h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.ww-notify-promo-card p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.5;
+}
+
+.ww-notify-promo-card a {
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* ============================================
+   Telegram Setup Guide
+   ============================================ */
+
+.ww-notify-setup-guide {
+    border-top: 1px solid #f0f0f1;
+    padding-top: 12px;
+}
+
+.ww-notify-setup-guide summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    color: #2271b1;
+}
+
+.ww-notify-setup-guide summary:hover {
+    color: #135e96;
+}
+
+.ww-notify-setup-guide ol {
+    margin: 10px 0 0 20px;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.8;
+}
+
+.ww-notify-setup-guide code {
+    font-size: 12px;
+    padding: 1px 5px;
+    background: #f0f0f1;
+    border-radius: 2px;
+}
+
+/* ============================================
+   Branding credits
+   ============================================ */
+
+.ww-branding-tag {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #50575e;
+    max-width: 360px;
+}
+
+.ww-branding-tag header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1d2327;
+    margin-bottom: 8px;
+}
+
+.ww-branding-tag nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ww-branding-tag nav div {
+    font-size: 12px;
+}
