@@ -17,18 +17,18 @@ function wellweb_notify_site_health_info( $debug_info ) {
     $fields = array();
 
     $fields['version'] = array(
-        'label' => __( 'Plugin Version', 'wellweb-notify' ),
+        'label' => __( 'Plugin Version', 'well-web-notify' ),
         'value' => defined( 'WELLWEB_NOTIFY_VERSION' ) ? WELLWEB_NOTIFY_VERSION : 'unknown',
     );
 
     foreach ( $channels as $ch ) {
         $status = array();
-        if ( $ch->is_enabled() ) $status[] = __( 'Enabled', 'wellweb-notify' );
-        if ( $ch->is_configured() ) $status[] = __( 'Configured', 'wellweb-notify' );
+        if ( $ch->is_enabled() ) $status[] = __( 'Enabled', 'well-web-notify' );
+        if ( $ch->is_configured() ) $status[] = __( 'Configured', 'well-web-notify' );
 
         $fields[ 'channel_' . $ch->get_slug() ] = array(
             'label' => $ch->get_label(),
-            'value' => $status ? implode( ', ', $status ) : __( 'Disabled', 'wellweb-notify' ),
+            'value' => $status ? implode( ', ', $status ) : __( 'Disabled', 'well-web-notify' ),
         );
     }
 
@@ -37,17 +37,17 @@ function wellweb_notify_site_health_info( $debug_info ) {
     $form_names   = array_map( function( $f ) { return $f->get_label(); }, $available );
 
     $fields['forms'] = array(
-        'label' => __( 'Active Form Plugins', 'wellweb-notify' ),
-        'value' => $form_names ? implode( ', ', $form_names ) : __( 'None detected', 'wellweb-notify' ),
+        'label' => __( 'Active Form Plugins', 'well-web-notify' ),
+        'value' => $form_names ? implode( ', ', $form_names ) : __( 'None detected', 'well-web-notify' ),
     );
 
     $fields['stats'] = array(
-        'label' => __( 'Notifications (7 days)', 'wellweb-notify' ),
+        'label' => __( 'Notifications (7 days)', 'well-web-notify' ),
         'value' => sprintf( '%d total, %d success, %d errors', $stats['total'], $stats['success'], $stats['error'] ),
     );
 
-    $debug_info['wellweb-notify'] = array(
-        'label'  => __( 'Well Web Notify', 'wellweb-notify' ),
+    $debug_info['well-web-notify'] = array(
+        'label'  => __( 'Well Web Notify', 'well-web-notify' ),
         'fields' => $fields,
     );
 
@@ -58,7 +58,7 @@ function wellweb_notify_site_health_info( $debug_info ) {
 add_filter( 'site_status_tests', 'wellweb_notify_site_health_tests' );
 function wellweb_notify_site_health_tests( $tests ) {
     $tests['direct']['wellweb_notify_channels'] = array(
-        'label' => __( 'Well Web Notify channels', 'wellweb-notify' ),
+        'label' => __( 'Well Web Notify channels', 'well-web-notify' ),
         'test'  => 'wellweb_notify_test_channels',
     );
 
@@ -71,39 +71,39 @@ function wellweb_notify_test_channels() {
     $stats   = WellWeb_Notify_Log::get_stats( 7 );
 
     $result = array(
-        'label'       => __( 'Well Web Notify is configured', 'wellweb-notify' ),
+        'label'       => __( 'Well Web Notify is configured', 'well-web-notify' ),
         'status'      => 'good',
         'badge'       => array(
-            'label' => __( 'Notifications', 'wellweb-notify' ),
+            'label' => __( 'Notifications', 'well-web-notify' ),
             'color' => 'blue',
         ),
         'description' => '',
         'actions'     => sprintf(
             '<a href="%s">%s</a>',
-            esc_url( admin_url( 'admin.php?page=wellweb-notify-settings' ) ),
-            __( 'Manage channels', 'wellweb-notify' )
+            esc_url( admin_url( 'admin.php?page=well-web-notify-settings' ) ),
+            __( 'Manage channels', 'well-web-notify' )
         ),
         'test'        => 'wellweb_notify_channels',
     );
 
     if ( empty( $active ) ) {
         $result['status']      = 'recommended';
-        $result['label']       = __( 'No notification channels are active', 'wellweb-notify' );
-        $result['description'] = __( 'Well Web Notify has no active channels. Enable and configure at least one channel to receive form notifications.', 'wellweb-notify' );
+        $result['label']       = __( 'No notification channels are active', 'well-web-notify' );
+        $result['description'] = __( 'Well Web Notify has no active channels. Enable and configure at least one channel to receive form notifications.', 'well-web-notify' );
         $result['badge']['color'] = 'orange';
     } elseif ( $stats['error'] > 0 && $stats['error'] > $stats['success'] ) {
         $result['status']      = 'recommended';
-        $result['label']       = __( 'Well Web Notify has delivery errors', 'wellweb-notify' );
+        $result['label']       = __( 'Well Web Notify has delivery errors', 'well-web-notify' );
         $result['description'] = sprintf(
             /* translators: %d: number of errors */
-            __( '%d errors in the last 7 days. Check the notification log for details.', 'wellweb-notify' ),
+            __( '%d errors in the last 7 days. Check the notification log for details.', 'well-web-notify' ),
             $stats['error']
         );
         $result['badge']['color'] = 'orange';
     } else {
         $result['description'] = sprintf(
             /* translators: %1$d: number of active channels, %2$d: number of notifications */
-            __( '%1$d active channel(s). %2$d notifications sent in the last 7 days.', 'wellweb-notify' ),
+            __( '%1$d active channel(s). %2$d notifications sent in the last 7 days.', 'well-web-notify' ),
             count( $active ),
             $stats['total']
         );

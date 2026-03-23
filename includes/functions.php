@@ -25,9 +25,9 @@ class WellWeb_Notify_Encryption {
         $this->openssl_available = extension_loaded( 'openssl' );
         $this->key_available     = defined( 'LOGGED_IN_KEY' ) && '' !== LOGGED_IN_KEY;
 
-        $this->key  = $this->key_available ? LOGGED_IN_KEY : 'wellweb-notify-fallback-key';
+        $this->key  = $this->key_available ? LOGGED_IN_KEY : 'well-web-notify-fallback-key';
         $this->salt = ( defined( 'LOGGED_IN_SALT' ) && '' !== LOGGED_IN_SALT )
-            ? LOGGED_IN_SALT : 'wellweb-notify-fallback-salt';
+            ? LOGGED_IN_SALT : 'well-web-notify-fallback-salt';
     }
 
     /**
@@ -171,11 +171,11 @@ function wellweb_notify_encryption() {
 }
 
 function wellweb_notify_get_option( $name, $default = '' ) {
-    return get_option( 'wellweb-notify-' . $name, $default );
+    return get_option( 'well-web-notify-' . $name, $default );
 }
 
 function wellweb_notify_get_encrypted( $name ) {
-    $val = get_option( 'wellweb-notify-' . $name, '' );
+    $val = get_option( 'well-web-notify-' . $name, '' );
     return empty( $val ) ? '' : wellweb_notify_encryption()->decrypt( $val );
 }
 
@@ -347,16 +347,16 @@ function wellweb_notify_encryption_notice() {
 
     if ( ! extension_loaded( 'openssl' ) ) {
         echo '<div class="notice notice-error"><p>';
-        echo '<strong>' . esc_html__( 'Well Web Notify:', 'wellweb-notify' ) . '</strong> ';
-        echo esc_html__( 'The OpenSSL PHP extension is not available. API credentials cannot be encrypted and will not be saved. Please enable OpenSSL in your PHP configuration.', 'wellweb-notify' );
+        echo '<strong>' . esc_html__( 'Well Web Notify:', 'well-web-notify' ) . '</strong> ';
+        echo esc_html__( 'The OpenSSL PHP extension is not available. API credentials cannot be encrypted and will not be saved. Please enable OpenSSL in your PHP configuration.', 'well-web-notify' );
         echo '</p></div>';
         return;
     }
 
     if ( ! $enc->has_secure_key() ) {
         echo '<div class="notice notice-warning"><p>';
-        echo '<strong>' . esc_html__( 'Well Web Notify:', 'wellweb-notify' ) . '</strong> ';
-        echo esc_html__( 'WordPress security keys (LOGGED_IN_KEY) are not properly configured. Your API credentials are stored with weak encryption. Please add unique security keys to wp-config.php.', 'wellweb-notify' );
+        echo '<strong>' . esc_html__( 'Well Web Notify:', 'well-web-notify' ) . '</strong> ';
+        echo esc_html__( 'WordPress security keys (LOGGED_IN_KEY) are not properly configured. Your API credentials are stored with weak encryption. Please add unique security keys to wp-config.php.', 'well-web-notify' );
         echo '</p></div>';
     }
 }
@@ -367,10 +367,10 @@ function wellweb_notify_encryption_notice() {
 add_filter( 'pre_update_option', 'wellweb_notify_preserve_encrypted', 10, 3 );
 function wellweb_notify_preserve_encrypted( $value, $option, $old_value ) {
     $protected = array(
-        'wellweb-notify-telegram-token',
-        'wellweb-notify-slack-webhook',
-        'wellweb-notify-discord-webhook',
-        'wellweb-notify-google-chat-webhook',
+        'well-web-notify-telegram-token',
+        'well-web-notify-slack-webhook',
+        'well-web-notify-discord-webhook',
+        'well-web-notify-google-chat-webhook',
     );
 
     if ( in_array( $option, $protected, true ) && empty( $value ) && ! empty( $old_value ) ) {

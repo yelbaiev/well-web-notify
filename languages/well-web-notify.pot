@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Well Web Notify 1.0.0\n"
+"Project-Id-Version: well-web-notify 1.0.0\n"
 "Report-Msgid-Bugs-To: support@wellweb.marketing\n"
 "POT-Creation-Date: 2025-01-01 00:00+0000\n"
 "MIME-Version: 1.0\n"

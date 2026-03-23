@@ -25,13 +25,13 @@ class WellWeb_Notify_WooCommerce implements WellWeb_Notify_Form {
     }
 
     public function register_hooks(): void {
-        $enabled = get_option( 'wellweb-notify-woo-enabled', false );
+        $enabled = get_option( 'well-web-notify-woo-enabled', false );
         if ( empty( $enabled ) ) {
             return;
         }
 
         // New order hook (fires at checkout before status transitions)
-        if ( get_option( 'wellweb-notify-woo-event-new-order', false ) ) {
+        if ( get_option( 'well-web-notify-woo-event-new-order', false ) ) {
             add_action( 'woocommerce_checkout_order_processed', array( $this, 'on_new_order' ), 10, 1 );
         }
 
@@ -74,12 +74,12 @@ class WellWeb_Notify_WooCommerce implements WellWeb_Notify_Form {
         }
 
         // Check if this specific status transition is enabled
-        if ( ! get_option( 'wellweb-notify-woo-event-' . $new_status, false ) ) {
+        if ( ! get_option( 'well-web-notify-woo-event-' . $new_status, false ) ) {
             return;
         }
 
         // Master toggle
-        if ( ! get_option( 'wellweb-notify-woo-enabled', false ) ) {
+        if ( ! get_option( 'well-web-notify-woo-enabled', false ) ) {
             return;
         }
 

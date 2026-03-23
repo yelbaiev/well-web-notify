@@ -1,5 +1,13 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.1
+
+- Changed: Renamed plugin file from index.php to well-web-notify.php for WordPress.org compliance
+- Changed: Updated text domain from wellweb-notify to well-web-notify across all files
+- Changed: Updated admin page and asset handle slugs to use well-web-notify prefix
+- Fixed: Dashboard widget styles now load on the dashboard screen
+- Changed: Refreshed .pot translation file with corrected text domain
+
 ## Version 1.0.0
 
 - Initial public release on wordpress.org

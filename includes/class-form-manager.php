@@ -67,7 +67,7 @@ class WellWeb_Notify_Form_Manager {
 
         $subject = sprintf(
             /* translators: %s: form name */
-            __( 'New submission: %s', 'wellweb-notify' ),
+            __( 'New submission: %s', 'well-web-notify' ),
             $form_name
         );
 

@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,7 +74,7 @@ When you configure a Google Chat Webhook URL, the plugin sends notification mess
 
 == Installation ==
 
-1. Upload the `wellweb-notify` folder to `/wp-content/plugins/`
+1. Upload the `well-web-notify` folder to `/wp-content/plugins/`
 2. Activate the plugin through the Plugins menu
 3. Go to Well Web > Notify in the admin menu
 4. Configure your channels — Telegram, Slack, Discord, or Google Chat
@@ -97,6 +97,12 @@ Contact us at support@wellweb.marketing to set up Viber or WhatsApp channels.
 = Does this work with WooCommerce? =
 
 Yes. Enable WooCommerce order notifications in the settings and choose which order events trigger a notification.
+
+== Screenshots ==
+
+1. Channel settings — configure Telegram, Slack, Discord, and Google Chat
+2. Notification log — filter by channel and status, with pagination
+3. Dashboard widget — quick stats and channel status at a glance
 
 == Changelog ==
 

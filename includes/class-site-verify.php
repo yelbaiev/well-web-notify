@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WellWeb_Notify_Site_Verify {
 
-    const OPTION_TOKEN = 'wellweb-notify-site-token';
+    const OPTION_TOKEN = 'well-web-notify-site-token';
 
     /**
      * Get or generate the site verification token

@@ -23,7 +23,7 @@ class WellWeb_Notify_WPForms implements WellWeb_Notify_Form {
     }
 
     public function on_submit( $fields, $entry, $form_data, $entry_id ) {
-        $form_name = $form_data['settings']['form_title'] ?? __( 'WPForms', 'wellweb-notify' );
+        $form_name = $form_data['settings']['form_title'] ?? __( 'WPForms', 'well-web-notify' );
 
         $parsed = array();
         foreach ( $fields as $field ) {

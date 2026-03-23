@@ -23,7 +23,7 @@ class WellWeb_Notify_Ninja_Forms implements WellWeb_Notify_Form {
     }
 
     public function on_submit( $form_data ) {
-        $form_name = $form_data['settings']['title'] ?? __( 'Ninja Forms', 'wellweb-notify' );
+        $form_name = $form_data['settings']['title'] ?? __( 'Ninja Forms', 'well-web-notify' );
 
         $fields = array();
         foreach ( $form_data['fields'] as $field ) {

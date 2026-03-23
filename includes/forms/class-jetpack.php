@@ -29,7 +29,7 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
      */
     public function on_submit( $post_id, $all_values, $extra_values ) {
         $post      = get_post( $post_id );
-        $form_name = $post ? $post->post_title : __( 'Jetpack Form', 'wellweb-notify' );
+        $form_name = $post ? $post->post_title : __( 'Jetpack Form', 'well-web-notify' );
 
         $fields = array();
         foreach ( $all_values as $key => $value ) {

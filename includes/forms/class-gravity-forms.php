@@ -23,7 +23,7 @@ class WellWeb_Notify_Gravity_Forms implements WellWeb_Notify_Form {
     }
 
     public function on_submit( $entry, $form ) {
-        $form_name = $form['title'] ?? __( 'Gravity Forms', 'wellweb-notify' );
+        $form_name = $form['title'] ?? __( 'Gravity Forms', 'well-web-notify' );
 
         $fields = array();
         foreach ( $form['fields'] as $field ) {

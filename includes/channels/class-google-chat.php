@@ -30,7 +30,7 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
         $webhook = $this->get_webhook();
 
         if ( empty( $webhook ) ) {
-            return new WP_Error( 'not_configured', __( 'Google Chat is not configured.', 'wellweb-notify' ) );
+            return new WP_Error( 'not_configured', __( 'Google Chat is not configured.', 'well-web-notify' ) );
         }
 
         // Build body from structured fields if available
@@ -94,8 +94,8 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
 
     public function send_test() {
         return $this->send(
-            __( 'Well Web Notify — Test', 'wellweb-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'wellweb-notify' ),
+            __( 'Well Web Notify — Test', 'well-web-notify' ),
+            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
             array( 'form_name' => 'Test' )
         );
     }
@@ -105,15 +105,15 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
         ?>
         <div class="ww-notify-channel-settings" data-channel="google-chat">
             <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'wellweb-notify' ); ?></span>
+                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'well-web-notify' ); ?></span>
                 <input type="password"
-                       name="wellweb-notify-google-chat-webhook"
+                       name="well-web-notify-google-chat-webhook"
                        value=""
                        placeholder="<?php echo $webhook ? esc_attr( wellweb_notify_mask( $webhook ) ) : 'https://chat.googleapis.com/v1/spaces/...'; ?>"
                        class="regular-text"
                        autocomplete="off" />
                 <span class="description">
-                    <?php esc_html_e( 'Space settings → Apps & integrations → Webhooks. Set bot name and avatar in Google Cloud Console.', 'wellweb-notify' ); ?>
+                    <?php esc_html_e( 'Space settings → Apps & integrations → Webhooks. Set bot name and avatar in Google Cloud Console.', 'well-web-notify' ); ?>
                 </span>
             </label>
         </div>
@@ -122,8 +122,8 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
 
     public function get_settings(): array {
         return array(
-            'wellweb-notify-google-chat-enabled' => 'wellweb_notify_sanitize_checkbox',
-            'wellweb-notify-google-chat-webhook' => 'wellweb_notify_sanitize_encrypted',
+            'well-web-notify-google-chat-enabled' => 'wellweb_notify_sanitize_checkbox',
+            'well-web-notify-google-chat-webhook' => 'wellweb_notify_sanitize_encrypted',
         );
     }
 

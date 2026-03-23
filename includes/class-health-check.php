@@ -14,8 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WellWeb_Notify_Health_Check {
 
     const CRON_HOOK       = 'wellweb_notify_health_check';
-    const OPTION_RESULTS  = 'wellweb-notify-health-results';
-    const OPTION_LAST_RUN = 'wellweb-notify-health-last-run';
+    const OPTION_RESULTS  = 'well-web-notify-health-results';
+    const OPTION_LAST_RUN = 'well-web-notify-health-last-run';
     const OPTION_ALERT_EMAIL = 'admin_email';
 
     public static function init() {
@@ -38,7 +38,7 @@ class WellWeb_Notify_Health_Check {
         if ( ! isset( $schedules['daily'] ) ) {
             $schedules['daily'] = array(
                 'interval' => DAY_IN_SECONDS,
-                'display'  => __( 'Once Daily', 'wellweb-notify' ),
+                'display'  => __( 'Once Daily', 'well-web-notify' ),
             );
         }
         return $schedules;
@@ -71,10 +71,10 @@ class WellWeb_Notify_Health_Check {
 
             // Send a health check message to the channel
             $check_result = $channel->send(
-                __( '✅ Daily Health Check', 'wellweb-notify' ),
+                __( '✅ Daily Health Check', 'well-web-notify' ),
                 sprintf(
                     /* translators: %s: site name */
-                    __( '%s — bot OK', 'wellweb-notify' ),
+                    __( '%s — bot OK', 'well-web-notify' ),
                     $site_name
                 ),
                 array( 'form_name' => 'Health Check' )
@@ -132,7 +132,7 @@ class WellWeb_Notify_Health_Check {
 
         $body .= "\n" . str_repeat( '-', 40 ) . "\n";
         $body .= "Please check your channel configuration in WordPress admin:\n";
-        $body .= admin_url( 'admin.php?page=wellweb-notify' ) . "\n\n";
+        $body .= admin_url( 'admin.php?page=well-web-notify' ) . "\n\n";
         $body .= "This check runs daily. You'll continue to receive alerts until the issue is resolved.\n";
 
         $headers = array( 'Content-Type: text/plain; charset=UTF-8' );

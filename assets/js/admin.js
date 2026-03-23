@@ -111,7 +111,7 @@ jQuery(function($) {
         .addClass('wp-has-current-submenu wp-menu-open');
 
     // Highlight Notify submenu item
-    $('#adminmenu').find('a[href*="wellweb-notify"]').first()
+    $('#adminmenu').find('a[href*="well-web-notify"]').first()
         .addClass('current')
         .closest('li').addClass('current');
 });

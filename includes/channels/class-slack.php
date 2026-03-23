@@ -30,7 +30,7 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
         $webhook = $this->get_webhook();
 
         if ( empty( $webhook ) ) {
-            return new WP_Error( 'not_configured', __( 'Slack is not configured.', 'wellweb-notify' ) );
+            return new WP_Error( 'not_configured', __( 'Slack is not configured.', 'well-web-notify' ) );
         }
 
         // Build body from structured fields if available
@@ -108,8 +108,8 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
 
     public function send_test() {
         return $this->send(
-            __( 'Well Web Notify — Test', 'wellweb-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'wellweb-notify' ),
+            __( 'Well Web Notify — Test', 'well-web-notify' ),
+            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
             array( 'form_name' => 'Test' )
         );
     }
@@ -121,36 +121,36 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
         ?>
         <div class="ww-notify-channel-settings" data-channel="slack">
             <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'wellweb-notify' ); ?></span>
+                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'well-web-notify' ); ?></span>
                 <input type="password"
-                       name="wellweb-notify-slack-webhook"
+                       name="well-web-notify-slack-webhook"
                        value=""
                        placeholder="<?php echo $webhook ? esc_attr( wellweb_notify_mask( $webhook ) ) : 'https://hooks.slack.com/services/...'; ?>"
                        class="regular-text"
                        autocomplete="off" />
                 <span class="description">
-                    <?php esc_html_e( 'Create an Incoming Webhook in your Slack workspace settings.', 'wellweb-notify' ); ?>
+                    <?php esc_html_e( 'Create an Incoming Webhook in your Slack workspace settings.', 'well-web-notify' ); ?>
                 </span>
             </label>
 
             <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Display Name', 'wellweb-notify' ); ?></span>
+                <span class="ww-field-label"><?php esc_html_e( 'Bot Display Name', 'well-web-notify' ); ?></span>
                 <input type="text"
-                       name="wellweb-notify-slack-bot-name"
+                       name="well-web-notify-slack-bot-name"
                        value="<?php echo esc_attr( $bot_name ); ?>"
                        placeholder="Well Web Notify"
                        class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default name. Leave empty to use Slack app settings.', 'wellweb-notify' ); ?></span>
+                <span class="description"><?php esc_html_e( 'Overrides the webhook default name. Leave empty to use Slack app settings.', 'well-web-notify' ); ?></span>
             </label>
 
             <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Icon URL', 'wellweb-notify' ); ?></span>
+                <span class="ww-field-label"><?php esc_html_e( 'Bot Icon URL', 'well-web-notify' ); ?></span>
                 <input type="url"
-                       name="wellweb-notify-slack-icon-url"
+                       name="well-web-notify-slack-icon-url"
                        value="<?php echo esc_attr( $icon_url ); ?>"
                        placeholder="https://example.com/icon.png"
                        class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default icon. Must be a public image URL.', 'wellweb-notify' ); ?></span>
+                <span class="description"><?php esc_html_e( 'Overrides the webhook default icon. Must be a public image URL.', 'well-web-notify' ); ?></span>
             </label>
         </div>
         <?php
@@ -158,10 +158,10 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
 
     public function get_settings(): array {
         return array(
-            'wellweb-notify-slack-enabled'  => 'wellweb_notify_sanitize_checkbox',
-            'wellweb-notify-slack-webhook'  => 'wellweb_notify_sanitize_encrypted',
-            'wellweb-notify-slack-bot-name' => 'sanitize_text_field',
-            'wellweb-notify-slack-icon-url' => 'esc_url_raw',
+            'well-web-notify-slack-enabled'  => 'wellweb_notify_sanitize_checkbox',
+            'well-web-notify-slack-webhook'  => 'wellweb_notify_sanitize_encrypted',
+            'well-web-notify-slack-bot-name' => 'sanitize_text_field',
+            'well-web-notify-slack-icon-url' => 'esc_url_raw',
         );
     }
 

@@ -543,3 +543,97 @@ p.description {
 .ww-branding-tag nav div {
     font-size: 12px;
 }
+
+/* ─── Dashboard Widget ──────────────────────────────────────── */
+
+.ww-notify-widget-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.ww-notify-widget-stat {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.ww-notify-widget-stat.--total {
+    background: #f0f6fc;
+}
+
+.ww-notify-widget-stat.--success {
+    background: #edfaef;
+}
+
+.ww-notify-widget-stat.--error {
+    background: #f6f7f7;
+}
+
+.ww-notify-widget-stat.--error.--has-errors {
+    background: #fcf0f1;
+}
+
+.ww-notify-widget-stat-value {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.ww-notify-widget-stat.--total .ww-notify-widget-stat-value {
+    color: #2271b1;
+}
+
+.ww-notify-widget-stat.--success .ww-notify-widget-stat-value {
+    color: #00a32a;
+}
+
+.ww-notify-widget-stat.--error .ww-notify-widget-stat-value {
+    color: #646970;
+}
+
+.ww-notify-widget-stat.--error.--has-errors .ww-notify-widget-stat-value {
+    color: #d63638;
+}
+
+.ww-notify-widget-stat-label {
+    font-size: 12px;
+    color: #646970;
+}
+
+.ww-notify-widget h4 {
+    margin: 0 0 8px;
+}
+
+.ww-notify-widget-channels {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ww-notify-widget-channels li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+}
+
+.ww-notify-widget-channels .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.ww-notify-widget-channels .--active {
+    color: #00a32a;
+}
+
+.ww-notify-widget-channels .--inactive {
+    color: #c3c4c7;
+}
+
+.ww-notify-widget-links {
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f1;
+}
