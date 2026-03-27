@@ -247,7 +247,7 @@ function wellweb_notify_settings_page() {
                 <span class="dashicons <?php echo esc_attr( $channel->get_icon() ); ?>"></span>
                 <?php echo esc_html( $channel->get_label() ); ?>
 
-                <label class="ww-notify-toggle" style="margin-left: auto;">
+                <label class="ww-notify-toggle">
                     <input type="checkbox"
                            name="well-web-notify-<?php echo esc_attr( $channel->get_slug() ); ?>-enabled"
                            value="1"
@@ -273,7 +273,7 @@ function wellweb_notify_settings_page() {
 
                 <?php if ( $channel->get_slug() === 'telegram' ) : ?>
                 <!-- Telegram Setup Guide -->
-                <details class="ww-notify-setup-guide" style="margin-top: 16px;">
+                <details class="ww-notify-setup-guide">
                     <summary><?php esc_html_e( 'How to set up Telegram notifications', 'well-web-notify' ); ?></summary>
                     <ol>
                         <li><?php echo wp_kses( __( 'Open Telegram and search for <strong>@BotFather</strong>', 'well-web-notify' ), array( 'strong' => array() ) ); ?></li>
@@ -288,7 +288,7 @@ function wellweb_notify_settings_page() {
 
                 <?php if ( $channel->get_slug() === 'slack' ) : ?>
                 <!-- Slack Setup Guide -->
-                <details class="ww-notify-setup-guide" style="margin-top: 16px;">
+                <details class="ww-notify-setup-guide">
                     <summary><?php esc_html_e( 'How to set up Slack notifications', 'well-web-notify' ); ?></summary>
                     <ol>
                         <li><?php echo wp_kses( __( 'Go to <strong>api.slack.com/apps</strong> and click "Create New App"', 'well-web-notify' ), array( 'strong' => array() ) ); ?></li>
@@ -303,7 +303,7 @@ function wellweb_notify_settings_page() {
 
                 <?php if ( $channel->get_slug() === 'discord' ) : ?>
                 <!-- Discord Setup Guide -->
-                <details class="ww-notify-setup-guide" style="margin-top: 16px;">
+                <details class="ww-notify-setup-guide">
                     <summary><?php esc_html_e( 'How to set up Discord notifications', 'well-web-notify' ); ?></summary>
                     <ol>
                         <li><?php echo wp_kses( __( 'Open your Discord server and go to <strong>Server Settings → Integrations</strong>', 'well-web-notify' ), array( 'strong' => array() ) ); ?></li>
@@ -317,7 +317,7 @@ function wellweb_notify_settings_page() {
 
                 <?php if ( $channel->get_slug() === 'google-chat' ) : ?>
                 <!-- Google Chat Setup Guide -->
-                <details class="ww-notify-setup-guide" style="margin-top: 16px;">
+                <details class="ww-notify-setup-guide">
                     <summary><?php esc_html_e( 'How to set up Google Chat notifications', 'well-web-notify' ); ?></summary>
                     <ol>
                         <li><?php esc_html_e( 'Open the Google Chat space where you want notifications', 'well-web-notify' ); ?></li>
@@ -360,7 +360,7 @@ function wellweb_notify_settings_page() {
                     <span class="dashicons <?php echo esc_attr( $pro['icon'] ); ?>"></span>
                     <?php echo esc_html( $pro['name'] ); ?>
                     <span class="ww-notify-badge --pro">Pro</span>
-                    <span style="margin-left: auto; font-weight: 400; font-size: 13px; color: #646970;">
+                    <span class="ww-pro-description">
                         <?php echo esc_html( $pro['description'] ); ?>
                     </span>
                 </h3>
@@ -388,7 +388,7 @@ function wellweb_notify_settings_page() {
                 <span class="dashicons dashicons-cart"></span>
                 <?php esc_html_e( 'WooCommerce Orders', 'well-web-notify' ); ?>
 
-                <label class="ww-notify-toggle" style="margin-left: auto;">
+                <label class="ww-notify-toggle">
                     <input type="checkbox"
                            name="well-web-notify-woo-enabled"
                            value="1"
@@ -397,7 +397,7 @@ function wellweb_notify_settings_page() {
                 </label>
             </h3>
             <div class="ww-settings-section-body">
-                <p class="description" style="margin-bottom: 12px;">
+                <p class="description ww-woo-description">
                     <?php esc_html_e( 'Choose which order events should trigger notifications:', 'well-web-notify' ); ?>
                 </p>
                 <?php
@@ -412,7 +412,7 @@ function wellweb_notify_settings_page() {
                 foreach ( $woo_events as $event_key => $event_label ) :
                     $option_name = 'well-web-notify-woo-event-' . $event_key;
                 ?>
-                <label class="ww-field" style="display: block; margin-bottom: 6px;">
+                <label class="ww-field ww-woo-event">
                     <input type="checkbox"
                            name="<?php echo esc_attr( $option_name ); ?>"
                            value="1"
@@ -420,7 +420,7 @@ function wellweb_notify_settings_page() {
                     <span><?php echo esc_html( $event_label ); ?></span>
                 </label>
                 <?php endforeach; ?>
-                <p class="description" style="margin-top: 12px;">
+                <p class="description ww-woo-description --bottom">
                     <?php esc_html_e( 'Notifications include: customer name, email, phone, items, total, payment method, and location. Phone contact links are generated automatically from billing phone.', 'well-web-notify' ); ?>
                 </p>
             </div>
@@ -463,7 +463,7 @@ function wellweb_notify_settings_page() {
 
         <aside class="ww-branding-tag">
             <header>
-                <img src="<?php echo esc_url( plugins_url( 'assets/img/ww-logo.png', __DIR__ ) ); ?>" alt="Well Web" width="32" height="32" style="border-radius: 4px;" />
+                <img src="<?php echo esc_url( plugins_url( 'assets/img/ww-logo.png', __DIR__ ) ); ?>" alt="Well Web" width="32" height="32" />
                 Well Web Marketing
             </header>
             <nav>
@@ -537,11 +537,11 @@ function wellweb_notify_log_page() {
     <table class="wp-list-table widefat fixed striped">
         <thead>
             <tr>
-                <th style="width: 120px;"><?php esc_html_e( 'Channel', 'well-web-notify' ); ?></th>
-                <th style="width: 200px;"><?php esc_html_e( 'Form', 'well-web-notify' ); ?></th>
-                <th style="width: 80px;"><?php esc_html_e( 'Status', 'well-web-notify' ); ?></th>
+                <th class="ww-log-col-channel"><?php esc_html_e( 'Channel', 'well-web-notify' ); ?></th>
+                <th class="ww-log-col-form"><?php esc_html_e( 'Form', 'well-web-notify' ); ?></th>
+                <th class="ww-log-col-status"><?php esc_html_e( 'Status', 'well-web-notify' ); ?></th>
                 <th><?php esc_html_e( 'Error', 'well-web-notify' ); ?></th>
-                <th style="width: 160px;"><?php esc_html_e( 'Date', 'well-web-notify' ); ?></th>
+                <th class="ww-log-col-date"><?php esc_html_e( 'Date', 'well-web-notify' ); ?></th>
             </tr>
         </thead>
         <tbody>

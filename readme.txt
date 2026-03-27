@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -102,9 +102,17 @@ Yes. Enable WooCommerce order notifications in the settings and choose which ord
 
 1. Channel settings — configure Telegram, Slack, Discord, and Google Chat
 2. Notification log — filter by channel and status, with pagination
-3. Dashboard widget — quick stats and channel status at a glance
 
 == Changelog ==
+
+= 1.0.2 =
+* Added plugin banners, icons, and screenshots for WordPress.org listing
+* Updated screenshots section to match provided assets
+
+= 1.0.1 =
+* Renamed plugin file from index.php to well-web-notify.php for WordPress.org compliance
+* Updated text domain and admin slugs to well-web-notify
+* Fixed dashboard widget styles loading on dashboard screen
 
 = 1.0.0 =
 * Initial public release on wordpress.org

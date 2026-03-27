@@ -5,6 +5,7 @@
 .git/
 .github/
 .claude/
+.wordpress-org/
 
 # Development files
 .DS_Store

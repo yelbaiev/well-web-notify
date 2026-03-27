@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Well Web Notify
  * Description:  Multi-channel form & order notifications — Telegram, Slack, Discord, Google Chat
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Well Web Marketing
  * Author URI: https://wellweb.marketing/
  * Plugin URI: https://wellweb.marketing/notify
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'WELLWEB_NOTIFY_PLUGIN_FILE', __FILE__ );
-define( 'WELLWEB_NOTIFY_VERSION', '1.0.1' );
+define( 'WELLWEB_NOTIFY_VERSION', '1.0.2' );
 define( 'WELLWEB_NOTIFY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WELLWEB_NOTIFY_URL', plugin_dir_url( __FILE__ ) );
 

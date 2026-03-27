@@ -122,6 +122,10 @@
    Toggle Switch
    ============================================ */
 
+.ww-settings-section-header .ww-notify-toggle {
+    margin-left: auto;
+}
+
 .ww-notify-toggle {
     position: relative;
     display: inline-block;
@@ -295,6 +299,26 @@
    Log page
    ============================================ */
 
+.ww-woo-description {
+    margin-bottom: 12px;
+}
+
+.ww-woo-description.--bottom {
+    margin-bottom: 0;
+    margin-top: 12px;
+}
+
+.ww-woo-event {
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* Log table column widths */
+.ww-log-col-channel { width: 120px; }
+.ww-log-col-form    { width: 200px; }
+.ww-log-col-status  { width: 80px; }
+.ww-log-col-date    { width: 160px; }
+
 .ww-notify-log-filters {
     margin-bottom: 15px;
 }
@@ -404,6 +428,13 @@ p.description {
     opacity: 0.7;
 }
 
+.ww-settings-section--teaser .ww-pro-description {
+    margin-left: auto;
+    font-weight: 400;
+    font-size: 13px;
+    color: #646970;
+}
+
 .ww-settings-section--teaser .ww-settings-section-header {
     background: #f9f9f9;
     border-bottom: none;
@@ -483,6 +514,7 @@ p.description {
 .ww-notify-setup-guide {
     border-top: 1px solid #f0f0f1;
     padding-top: 12px;
+    margin-top: 16px;
 }
 
 .ww-notify-setup-guide summary {
@@ -523,6 +555,10 @@ p.description {
     font-size: 13px;
     color: #50575e;
     max-width: 360px;
+}
+
+.ww-branding-tag img {
+    border-radius: 4px;
 }
 
 .ww-branding-tag header {

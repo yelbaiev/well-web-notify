@@ -207,12 +207,31 @@ function wellweb_notify_mask( $key ) {
  * Check if a field label looks like a phone number field.
  */
 function wellweb_notify_is_phone_label( string $label ): bool {
-    $label    = strtolower( trim( $label ) );
+    $label    = mb_strtolower( trim( $label ), 'UTF-8' );
     $patterns = array(
+        // English
         'phone', 'tel', 'telephone', 'phone number', 'phone no',
         'your phone', 'your tel', 'mobile', 'mobile number',
         'cell', 'cell phone', 'contact number',
+        // German / Swedish / Nordic
         'telefon', 'mobilnummer', 'telefonnummer',
+        // Spanish
+        'teléfono', 'móvil', 'celular',
+        // French
+        'téléphone', 'portable',
+        // Portuguese
+        'telefone', 'telemóvel',
+        // Italian
+        'cellulare',
+        // Dutch
+        'telefoon', 'mobiel',
+        // Polish
+        'komórka', 'numer telefonu',
+        // Turkish
+        'cep telefonu',
+        // Ukrainian / Russian
+        'телефон', 'тел', 'мобільний', 'мобильный',
+        'номер телефону', 'номер телефона',
     );
 
     foreach ( $patterns as $pattern ) {
@@ -227,10 +246,28 @@ function wellweb_notify_is_phone_label( string $label ): bool {
  * Check if a field label looks like a country / dial code field.
  */
 function wellweb_notify_is_country_label( string $label ): bool {
-    $label    = strtolower( trim( $label ) );
+    $label    = mb_strtolower( trim( $label ), 'UTF-8' );
     $patterns = array(
-        'country code', 'dial code', 'dialing code', 'phone code',
-        'landskod', 'country',
+        // English
+        'country code', 'dial code', 'dialing code', 'phone code', 'country',
+        // German / Swedish / Nordic
+        'landskod', 'landesvorwahl', 'landcode',
+        // Spanish
+        'código de país', 'código país', 'país',
+        // French
+        'indicatif', 'code pays', 'pays',
+        // Portuguese
+        'código do país',
+        // Italian
+        'prefisso', 'paese',
+        // Dutch
+        'landcode', 'landnummer',
+        // Polish
+        'numer kierunkowy', 'kod kraju',
+        // Turkish
+        'ülke kodu',
+        // Ukrainian / Russian
+        'код країни', 'код страни', 'країна', 'страна',
     );
 
     foreach ( $patterns as $pattern ) {
@@ -291,7 +328,35 @@ function wellweb_notify_normalize_phone( string $phone, string $country_code = '
 }
 
 /**
+ * Check if a value looks like a phone number based on its format.
+ */
+function wellweb_notify_is_phone_value( string $value ): bool {
+    // Must contain only digits and common phone separators.
+    if ( ! preg_match( '/^[\d\s\-\(\)\.\/+]+$/', $value ) ) {
+        return false;
+    }
+
+    $digits = preg_replace( '/[^0-9]/', '', $value );
+    $len    = strlen( $digits );
+
+    // E.164: 7–15 digits.
+    if ( $len < 7 || $len > 15 ) {
+        return false;
+    }
+
+    // At least 50% of the string should be digits (filters out "12/34/5678" date-like).
+    if ( $len / strlen( trim( $value ) ) < 0.5 ) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Scan form fields for a phone number and normalize it.
+ *
+ * Phase 1: label-based detection (fast, precise).
+ * Phase 2: value-based fallback (language-agnostic).
  *
  * @param array $fields Associative label => value pairs from the form.
  * @return string Normalized phone like "+380501234567" or "".
@@ -300,6 +365,7 @@ function wellweb_notify_extract_phone( array $fields ): string {
     $phone_value   = '';
     $country_value = '';
 
+    // Phase 1: label-based detection.
     foreach ( $fields as $label => $value ) {
         $val = trim( (string) ( is_array( $value ) ? implode( ', ', $value ) : $value ) );
 
@@ -310,11 +376,25 @@ function wellweb_notify_extract_phone( array $fields ): string {
         }
     }
 
-    if ( $phone_value === '' ) {
-        return '';
+    if ( $phone_value !== '' ) {
+        return wellweb_notify_normalize_phone( $phone_value, $country_value );
     }
 
-    return wellweb_notify_normalize_phone( $phone_value, $country_value );
+    // Phase 2: value-based fallback — scan for phone-shaped values.
+    foreach ( $fields as $label => $value ) {
+        $val = trim( (string) ( is_array( $value ) ? implode( ', ', $value ) : $value ) );
+
+        // Skip emails, URLs, and long text.
+        if ( strpos( $val, '@' ) !== false || strpos( $val, '://' ) !== false || strlen( $val ) > 30 ) {
+            continue;
+        }
+
+        if ( wellweb_notify_is_phone_value( $val ) ) {
+            return wellweb_notify_normalize_phone( $val, $country_value );
+        }
+    }
+
+    return '';
 }
 
 /**

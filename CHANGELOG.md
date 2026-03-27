@@ -1,5 +1,11 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.2
+
+- Added: Plugin banners, icons, and screenshots for WordPress.org listing
+- Changed: Updated screenshots section in readme.txt to match provided assets
+- Changed: Excluded .wordpress-org directory from distribution zip
+
 ## Version 1.0.1
 
 - Changed: Renamed plugin file from index.php to well-web-notify.php for WordPress.org compliance
