@@ -51,10 +51,10 @@ class WellWeb_Notify_Health_Check {
         $manager = WellWeb_Notify_Channel_Manager::instance();
         $channels = $manager->get_channels();
 
-        $results = array();
-        $failures = array();
+        $results   = array();
+        $failures  = array();
         $successes = array();
-        $site_name = get_bloginfo( 'name' );
+        $domain    = wellweb_notify_site_domain();
         $site_url  = home_url();
         $timestamp = current_time( 'mysql' );
 
@@ -71,11 +71,12 @@ class WellWeb_Notify_Health_Check {
 
             // Send a health check message to the channel
             $check_result = $channel->send(
-                __( '✅ Daily Health Check', 'well-web-notify' ),
+                __( 'Daily health check', 'well-web-notify' ),
                 sprintf(
-                    /* translators: %s: site name */
-                    __( '%s — bot OK', 'well-web-notify' ),
-                    $site_name
+                    /* translators: 1: channel name e.g. "Telegram", 2: site domain */
+                    __( '%1$s connection is healthy — notifications from %2$s are being delivered.', 'well-web-notify' ),
+                    $channel->get_label(),
+                    $domain
                 ),
                 array( 'form_name' => 'Health Check' )
             );
@@ -111,7 +112,7 @@ class WellWeb_Notify_Health_Check {
 
         // Send failure email alert if any channel failed
         if ( ! empty( $failures ) ) {
-            self::send_failure_email( $failures, $site_name, $site_url, $timestamp );
+            self::send_failure_email( $failures, $domain, $site_url, $timestamp );
         }
     }
 
@@ -119,7 +120,7 @@ class WellWeb_Notify_Health_Check {
      * Send email alert for channel failures
      */
     private static function send_failure_email( array $failures, string $site_name, string $site_url, string $timestamp ) {
-        $subject = sprintf( '[Well Web Notify] ⚠️ Bot failure on %s', $site_name );
+        $subject = sprintf( '[Well Web Notify] Bot failure on %s', $site_name );
 
         $body = sprintf( "Daily bot health check failed for %s (%s)\n", $site_name, $site_url );
         $body .= sprintf( "Time: %s\n\n", $timestamp );

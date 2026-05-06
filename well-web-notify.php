@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Well Web Notify
  * Description:  Multi-channel form & order notifications — Telegram, Slack, Discord, Google Chat
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Well Web Marketing
  * Author URI: https://wellweb.marketing/
  * Plugin URI: https://wellweb.marketing/notify
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'WELLWEB_NOTIFY_PLUGIN_FILE', __FILE__ );
-define( 'WELLWEB_NOTIFY_VERSION', '1.0.2' );
+define( 'WELLWEB_NOTIFY_VERSION', '1.0.3' );
 define( 'WELLWEB_NOTIFY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WELLWEB_NOTIFY_URL', plugin_dir_url( __FILE__ ) );
 
@@ -67,6 +67,9 @@ include WELLWEB_NOTIFY_DIR . 'includes/site-health.php';
 // Daily bot health check
 include WELLWEB_NOTIFY_DIR . 'includes/class-health-check.php';
 
+// WordPress.org review prompt
+include WELLWEB_NOTIFY_DIR . 'includes/class-review-notice.php';
+
 // Activation / Deactivation
 register_activation_hook( __FILE__, 'wellweb_notify_activate' );
 register_deactivation_hook( __FILE__, 'wellweb_notify_deactivate' );
@@ -74,6 +77,10 @@ register_deactivation_hook( __FILE__, 'wellweb_notify_deactivate' );
 function wellweb_notify_activate() {
     WellWeb_Notify_Log::create_table();
     WellWeb_Notify_Site_Verify::get_site_token(); // Generate token on first activation
+
+    if ( ! get_option( WellWeb_Notify_Review_Notice::OPTION_ACTIVATION_DATE ) ) {
+        update_option( WellWeb_Notify_Review_Notice::OPTION_ACTIVATION_DATE, time(), false );
+    }
 }
 
 function wellweb_notify_deactivate() {

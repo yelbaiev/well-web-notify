@@ -49,7 +49,7 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
                 'type' => 'header',
                 'text' => array(
                     'type' => 'plain_text',
-                    'text' => get_bloginfo( 'name' ),
+                    'text' => wellweb_notify_site_domain(),
                 ),
             ),
             array(

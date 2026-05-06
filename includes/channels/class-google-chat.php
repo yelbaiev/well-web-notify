@@ -47,7 +47,7 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
         $cards = array(
             array(
                 'header' => array(
-                    'title' => get_bloginfo( 'name' ),
+                    'title' => wellweb_notify_site_domain(),
                 ),
                 'sections' => array(
                     array(

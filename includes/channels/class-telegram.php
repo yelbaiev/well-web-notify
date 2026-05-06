@@ -47,7 +47,7 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
             $formatted_body = $body;
         }
 
-        $text = "<b>" . esc_html( get_bloginfo( 'name' ) ) . "</b>\n\n{$formatted_body}";
+        $text = "<b>" . esc_html( wellweb_notify_site_domain() ) . "</b>\n\n{$formatted_body}";
 
         // Contact links (Telegram only supports http/https in <a> tags)
         if ( ! empty( $meta['phone'] ) ) {

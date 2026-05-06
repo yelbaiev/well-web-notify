@@ -46,7 +46,7 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
 
         $embeds = array(
             array(
-                'title'       => get_bloginfo( 'name' ),
+                'title'       => wellweb_notify_site_domain(),
                 'description' => $formatted_body,
                 'color'       => 3447003, // Blue
                 'timestamp'   => gmdate( 'c' ),

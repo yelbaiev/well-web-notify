@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,6 +104,11 @@ Yes. Enable WooCommerce order notifications in the settings and choose which ord
 2. Notification log — filter by channel and status, with pagination
 
 == Changelog ==
+
+= 1.0.3 =
+* Notification header now shows the site domain instead of the site title for cleaner chat previews
+* Daily health-check message reworded to clearly explain what is being verified
+* Optional review prompt on the plugin's own admin pages, shown only after the plugin has been in active use
 
 = 1.0.2 =
 * Added plugin banners, icons, and screenshots for WordPress.org listing

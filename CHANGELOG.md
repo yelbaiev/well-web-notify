@@ -1,5 +1,11 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.3
+
+- Changed: Notification header now shows the site domain instead of the site title for cleaner chat previews
+- Changed: Daily health-check message reworded to clearly explain what is being verified
+- Added: Optional review prompt on the plugin's own admin pages, shown only after at least 14 days of active use
+
 ## Version 1.0.2
 
 - Added: Plugin banners, icons, and screenshots for WordPress.org listing

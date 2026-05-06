@@ -398,6 +398,17 @@ function wellweb_notify_extract_phone( array $fields ): string {
 }
 
 /**
+ * Site host without scheme or "www." prefix — used as the notification header.
+ */
+function wellweb_notify_site_domain(): string {
+    $host = wp_parse_url( home_url(), PHP_URL_HOST );
+    if ( ! is_string( $host ) || $host === '' ) {
+        return get_bloginfo( 'name' );
+    }
+    return preg_replace( '/^www\./i', '', $host );
+}
+
+/**
  * Build contact link URLs for a normalized phone number.
  *
  * @param string $phone E.164 phone like "+380501234567".
