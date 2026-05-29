@@ -17,3 +17,12 @@ dist/
 # Locks
 composer.lock
 package-lock.json
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json

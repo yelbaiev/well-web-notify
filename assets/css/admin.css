@@ -61,6 +61,7 @@
     background: #fff;
     border-color: #c3c4c7;
     color: #1d2327;
+    border-radius: 4px 4px 0 0;
 }
 
 /* ============================================
@@ -70,12 +71,14 @@
 .ww-settings-section {
     background: #fff;
     border: 1px solid #c3c4c7;
+    border-radius: 4px;
     margin-bottom: 20px;
 }
 
 .ww-settings-section-header {
     background: #f6f7f7;
     border-bottom: 1px solid #c3c4c7;
+    border-radius: 4px 4px 0 0;
     padding: 12px 16px;
     margin: 0;
     font-size: 14px;
@@ -116,6 +119,12 @@
 
 .ww-collapsible.ww-collapsed .ww-settings-section-body {
     display: none;
+}
+
+/* When collapsed the header is the only visible part — round all corners */
+.ww-collapsible.ww-collapsed .ww-settings-section-header {
+    border-bottom: none;
+    border-radius: 4px;
 }
 
 /* ============================================
@@ -161,7 +170,7 @@
 }
 
 .ww-notify-toggle input:checked + .ww-notify-toggle-slider {
-    background: #2271b1;
+    background: var(--wp-admin-theme-color, #2271b1);
 }
 
 .ww-notify-toggle input:checked + .ww-notify-toggle-slider::before {
@@ -412,7 +421,7 @@ p.description {
 
 .ww-notify-verify-code:hover {
     background: #e6f0fa;
-    border-color: #2271b1;
+    border-color: var(--wp-admin-theme-color, #2271b1);
 }
 
 /* ============================================
@@ -438,6 +447,7 @@ p.description {
 .ww-settings-section--teaser .ww-settings-section-header {
     background: #f9f9f9;
     border-bottom: none;
+    border-radius: 4px;
 }
 
 .ww-notify-badge.--pro {
@@ -521,11 +531,11 @@ p.description {
     cursor: pointer;
     font-weight: 600;
     font-size: 13px;
-    color: #2271b1;
+    color: var(--wp-admin-theme-color, #2271b1);
 }
 
 .ww-notify-setup-guide summary:hover {
-    color: #135e96;
+    color: var(--wp-admin-theme-color-darker-10, #135e96);
 }
 
 .ww-notify-setup-guide ol {
@@ -617,7 +627,7 @@ p.description {
 }
 
 .ww-notify-widget-stat.--total .ww-notify-widget-stat-value {
-    color: #2271b1;
+    color: var(--wp-admin-theme-color, #2271b1);
 }
 
 .ww-notify-widget-stat.--success .ww-notify-widget-stat-value {

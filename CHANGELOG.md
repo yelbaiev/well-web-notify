@@ -1,5 +1,11 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.4
+
+- Changed: Tested and confirmed compatible with WordPress 7.0
+- Changed: Admin accent colors now follow the active admin color scheme (via --wp-admin-theme-color) instead of a fixed blue, so the UI matches the new WP 7.0 "Modern" admin theme
+- Changed: Settings cards and the active tab now use rounded corners to match the Modern admin look
+
 ## Version 1.0.3
 
 - Changed: Notification header now shows the site domain instead of the site title for cleaner chat previews

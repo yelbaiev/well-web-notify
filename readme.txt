@@ -2,9 +2,9 @@
 Contributors: yelbaiev
 Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,6 +104,11 @@ Yes. Enable WooCommerce order notifications in the settings and choose which ord
 2. Notification log — filter by channel and status, with pagination
 
 == Changelog ==
+
+= 1.0.4 =
+* Tested and confirmed compatible with WordPress 7.0
+* Admin UI refreshed for the new WordPress 7.0 "Modern" admin theme — accent colors now follow the active admin color scheme instead of a fixed blue
+* Settings cards and tabs now use rounded corners to match the Modern admin look
 
 = 1.0.3 =
 * Notification header now shows the site domain instead of the site title for cleaner chat previews

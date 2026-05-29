@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Well Web Notify
  * Description:  Multi-channel form & order notifications — Telegram, Slack, Discord, Google Chat
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Well Web Marketing
  * Author URI: https://wellweb.marketing/
  * Plugin URI: https://wellweb.marketing/notify
@@ -10,7 +10,7 @@
  * Domain Path: /languages
  * Requires PHP: 8.2
  * Requires at least: 6.8
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'WELLWEB_NOTIFY_PLUGIN_FILE', __FILE__ );
-define( 'WELLWEB_NOTIFY_VERSION', '1.0.3' );
+define( 'WELLWEB_NOTIFY_VERSION', '1.0.4' );
 define( 'WELLWEB_NOTIFY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WELLWEB_NOTIFY_URL', plugin_dir_url( __FILE__ ) );
 
