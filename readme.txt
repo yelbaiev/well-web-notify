@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,6 +104,10 @@ Yes. Enable WooCommerce order notifications in the settings and choose which ord
 2. Notification log — filter by channel and status, with pagination
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed: Jetpack form submissions now reliably reach all channels on Jetpack 15+ — the integration listens on the surviving `grunion_after_message_sent` hook (Jetpack 15 dropped `grunion_pre_message_sent` and stamps `_feedback_extra_fields` empty on the Forms-block path)
+* Changed: per-request dedupe now claims the dispatch slot only at the moment of send, so an early-arriving empty meta write can no longer block a later hook with the real payload
 
 = 1.0.4 =
 * Tested and confirmed compatible with WordPress 7.0

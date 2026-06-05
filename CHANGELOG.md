@@ -1,5 +1,10 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.5
+
+- Fixed: Jetpack form submissions now reliably reach all channels on Jetpack 15+. Jetpack 15 dropped the legacy `grunion_pre_message_sent` action and writes `_feedback_extra_fields` as an empty array on the new Forms-block path, which silently broke every previously working integration. The plugin now listens on `grunion_after_message_sent` and the modern feedback meta keys, with a defensive fallback on `transition_post_status`.
+- Changed: per-request dedupe across the Jetpack hook listeners now claims the dispatch slot only at the moment of send, so an early-arriving empty meta write cannot block a later hook that has the real payload.
+
 ## Version 1.0.4
 
 - Changed: Tested and confirmed compatible with WordPress 7.0
