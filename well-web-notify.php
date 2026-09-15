@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Well Web Notify
  * Description:  Multi-channel form & order notifications — Telegram, Slack, Discord, Google Chat
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Well Web Marketing
  * Author URI: https://wellweb.marketing/
  * Plugin URI: https://wellweb.marketing/notify
@@ -20,12 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'WELLWEB_NOTIFY_PLUGIN_FILE', __FILE__ );
-define( 'WELLWEB_NOTIFY_VERSION', '1.0.5' );
+define( 'WELLWEB_NOTIFY_VERSION', '1.0.6' );
 define( 'WELLWEB_NOTIFY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WELLWEB_NOTIFY_URL', plugin_dir_url( __FILE__ ) );
 
 // Core functions (encryption, helpers)
 include WELLWEB_NOTIFY_DIR . 'includes/functions.php';
+
+// What a notification contains, and how it reads
+include WELLWEB_NOTIFY_DIR . 'includes/class-message.php';
 
 // Site verification
 include WELLWEB_NOTIFY_DIR . 'includes/class-site-verify.php';
@@ -55,8 +58,14 @@ include WELLWEB_NOTIFY_DIR . 'includes/class-form-manager.php';
 // Notification log
 include WELLWEB_NOTIFY_DIR . 'includes/class-log.php';
 
-// Admin settings
-include WELLWEB_NOTIFY_DIR . 'includes/options.php';
+// Admin: the settings screen and its sections, plus the activity screen
+include WELLWEB_NOTIFY_DIR . 'includes/admin-nav.php';
+include WELLWEB_NOTIFY_DIR . 'includes/admin-settings.php';
+include WELLWEB_NOTIFY_DIR . 'includes/admin-screen.php';
+include WELLWEB_NOTIFY_DIR . 'includes/section-channels.php';
+include WELLWEB_NOTIFY_DIR . 'includes/section-sources.php';
+include WELLWEB_NOTIFY_DIR . 'includes/section-message.php';
+include WELLWEB_NOTIFY_DIR . 'includes/screen-activity.php';
 
 // Dashboard widget
 include WELLWEB_NOTIFY_DIR . 'includes/dashboard-widget.php';

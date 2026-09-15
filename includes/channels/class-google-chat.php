@@ -33,40 +33,29 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
             return new WP_Error( 'not_configured', __( 'Google Chat is not configured.', 'well-web-notify' ) );
         }
 
-        // Build body from structured fields if available
-        if ( ! empty( $meta['fields'] ) ) {
-            $lines = array();
-            foreach ( $meta['fields'] as $label => $value ) {
-                $lines[] = '<b>' . esc_html( $label ) . ':</b> ' . esc_html( $value );
-            }
-            $formatted_body = implode( '<br>', $lines );
-        } else {
-            $formatted_body = nl2br( esc_html( $body ) );
+        $meta = WellWeb_Notify_Message::ensure( $meta, $subject, $body );
+
+        $header = array( 'title' => $meta['title'] );
+
+        $context = WellWeb_Notify_Message::context_line( $meta );
+        if ( $context !== '' ) {
+            $header['subtitle'] = $context;
         }
 
-        $cards = array(
-            array(
-                'header' => array(
-                    'title' => wellweb_notify_site_domain(),
-                ),
-                'sections' => array(
-                    array(
-                        'widgets' => array(
-                            array(
-                                'textParagraph' => array(
-                                    'text' => $formatted_body,
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        );
+        $sections = array();
 
-        // Contact links
+        $lines = WellWeb_Notify_Message::field_lines( $meta, '<b>', '</b>', 'esc_html' );
+        if ( $lines !== '' ) {
+            $sections[] = array(
+                'widgets' => array(
+                    array( 'textParagraph' => array( 'text' => str_replace( "\n", '<br>', $lines ) ) ),
+                ),
+            );
+        }
+
         if ( ! empty( $meta['phone'] ) ) {
-            $links = wellweb_notify_phone_links( $meta['phone'] );
-            $cards[0]['sections'][] = array(
+            $links      = wellweb_notify_phone_links( $meta['phone'] );
+            $sections[] = array(
                 'widgets' => array(
                     array(
                         'textParagraph' => array(
@@ -83,6 +72,29 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
             );
         }
 
+        if ( ! empty( $meta['source_url'] ) ) {
+            $sections[] = array(
+                'widgets' => array(
+                    array(
+                        'textParagraph' => array(
+                            'text' => sprintf(
+                                '<a href="%s">%s &rarr;</a>',
+                                esc_attr( $meta['source_url'] ),
+                                esc_html( WellWeb_Notify_Message::source_label( $meta ) )
+                            ),
+                        ),
+                    ),
+                ),
+            );
+        }
+
+        $cards = array(
+            array(
+                'header'   => $header,
+                'sections' => $sections,
+            ),
+        );
+
         $response = wp_remote_post( $webhook, array(
             'timeout' => 15,
             'headers' => array( 'Content-Type' => 'application/json; charset=UTF-8' ),
@@ -93,31 +105,23 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
     }
 
     public function send_test() {
-        return $this->send(
-            __( 'Well Web Notify — Test', 'well-web-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
-            array( 'form_name' => 'Test' )
-        );
+        $meta = wellweb_notify_test_message();
+        return $this->send( $meta['title'], $meta['note'], $meta );
     }
 
     public function render_settings(): void {
         $webhook = $this->get_webhook();
-        ?>
-        <div class="ww-notify-channel-settings" data-channel="google-chat">
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'well-web-notify' ); ?></span>
-                <input type="password"
-                       name="well-web-notify-google-chat-webhook"
-                       value=""
-                       placeholder="<?php echo $webhook ? esc_attr( wellweb_notify_mask( $webhook ) ) : 'https://chat.googleapis.com/v1/spaces/...'; ?>"
-                       class="regular-text"
-                       autocomplete="off" />
-                <span class="description">
-                    <?php esc_html_e( 'Space settings → Apps & integrations → Webhooks. Set bot name and avatar in Google Cloud Console.', 'well-web-notify' ); ?>
-                </span>
-            </label>
-        </div>
-        <?php
+
+        wellweb_notify_render_fields( array(
+            array(
+                'name'        => 'well-web-notify-google-chat-webhook',
+                'label'       => __( 'Webhook URL', 'well-web-notify' ),
+                'type'        => 'password',
+                'masked'      => true,
+                'placeholder' => $webhook ? wellweb_notify_mask( $webhook ) : 'https://chat.googleapis.com/v1/spaces/…',
+                'hint'        => __( 'Space settings → Apps &amp; integrations → Webhooks. The bot\'s name and avatar are set there, not here.', 'well-web-notify' ),
+            ),
+        ) );
     }
 
     public function get_settings(): array {

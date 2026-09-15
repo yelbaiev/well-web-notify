@@ -1,0 +1,809 @@
+/* ============================================================
+   Well Web Design System (WPDS) — shared core.
+
+   VENDORED from wellweb-seo/assets/css/wpds.css (the token layer
+   plus the component layer, everything before that plugin's own
+   screens begin). Do not edit here: a divergence between the two
+   plugins' copies is exactly the thing this file exists to stop.
+   Re-vendor instead.
+   ============================================================ */
+
+:root {
+  /* ── WPDS canonical primitives ─────────────────────────────── */
+
+  /* Brand · primary scale (WPDS primary, replaces WP-admin Aegean) */
+  --wpds-primary-bg-fill-1:   #3858e9;
+  --wpds-primary-bg-fill-2:   #2e49d9;
+  --wpds-primary-surface-1:   #ecf0fa;
+  --wpds-primary-surface-2:   #f6f8fe;
+  --wpds-primary-surface-4:   #e6eaf4;
+  --wpds-primary-fg-surface-3:#3858e9;
+  --wpds-primary-stroke-3:    #3858e9;
+  --wpds-primary-stroke-4:    #2337c8;
+
+  /* Neutrals · warm 6-step ramp */
+  --wpds-bg-surface-1:    #f4f4f4;
+  --wpds-bg-surface-2:    #fcfcfc;
+  --wpds-bg-surface-3:    #ffffff;
+  --wpds-bg-surface-4:    #ededed;
+  --wpds-bg-surface-5:    #e6e6e6;
+  --wpds-bg-fg-surface-2: #8d8d8d;
+  --wpds-bg-fg-surface-3: #707070;
+  --wpds-bg-fg-surface-4: #1e1e1e;
+  --wpds-bg-stroke-1:     #e4e4e4;
+  --wpds-bg-stroke-2:     #dbdbdb;
+  --wpds-bg-stroke-3:     #8d8d8d;
+  --wpds-bg-stroke-4:     #6e6e6e;
+
+  /* Status tones — surface + foreground per WPDS */
+  --wpds-success-surface-2:    #ebffed;
+  --wpds-success-surface-4:    #c6f7cd;
+  --wpds-success-fg-surface-3: #008030;
+  --wpds-info-surface-2:       #f3f9ff;
+  --wpds-info-surface-4:       #deebfa;
+  --wpds-info-fg-surface-3:    #006bd7;
+  --wpds-warning-surface-2:    #fff7e1;
+  --wpds-warning-surface-4:    #fde6be;
+  --wpds-warning-fg-surface-3: #926300;
+  --wpds-error-bg-fill-1:      #cc1818;
+  --wpds-error-bg-fill-2:      #b90000;
+  --wpds-error-surface-2:      #fff6f5;
+  --wpds-error-surface-4:      #f6e6e3;
+  --wpds-error-fg-surface-3:   #cc1818;
+
+  /* Border · radii + widths (1/2/4/8 px) */
+  --wpds-border-radius-xs:   1px;
+  --wpds-border-radius-sm:   2px;
+  --wpds-border-radius-md:   4px;
+  --wpds-border-radius-lg:   8px;
+  --wpds-border-width-xs:    1px;
+  --wpds-border-width-sm:    2px;
+  --wpds-border-width-md:    4px;
+  --wpds-border-width-lg:    8px;
+  --wpds-border-width-focus: 2px;
+
+  /* Spacing · 4-px-base ramp */
+  --wpds-space-0:   0px;
+  --wpds-space-10:  4px;
+  --wpds-space-20:  8px;
+  --wpds-space-30:  12px;
+  --wpds-space-40:  16px;
+  --wpds-space-50:  20px;
+  --wpds-space-60:  24px;
+  --wpds-space-70:  32px;
+  --wpds-space-80:  40px;
+  --wpds-space-90:  48px;
+
+  /* Elevation · 4-layer composites from upstream */
+  --wpds-elevation-xs:
+    0 1px 1px 0 rgba(0,0,0,0.03),
+    0 1px 2px 0 rgba(0,0,0,0.02),
+    0 3px 3px 0 rgba(0,0,0,0.02),
+    0 4px 4px 0 rgba(0,0,0,0.01);
+  --wpds-elevation-sm:
+    0 1px 2px 0 rgba(0,0,0,0.05),
+    0 2px 3px 0 rgba(0,0,0,0.04),
+    0 6px 6px 0 rgba(0,0,0,0.03),
+    0 8px 8px 0 rgba(0,0,0,0.02);
+  --wpds-elevation-md:
+    0 2px 3px 0 rgba(0,0,0,0.05),
+    0 4px 5px 0 rgba(0,0,0,0.04),
+    0 12px 12px 0 rgba(0,0,0,0.03),
+    0 16px 16px 0 rgba(0,0,0,0.02);
+  --wpds-elevation-lg:
+    0 5px 15px 0 rgba(0,0,0,0.08),
+    0 15px 27px 0 rgba(0,0,0,0.07),
+    0 30px 36px 0 rgba(0,0,0,0.04),
+    0 50px 43px 0 rgba(0,0,0,0.02);
+
+  /* Typography */
+  --wpds-typography-font-family-body: -apple-system, system-ui, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  --wpds-typography-font-family-mono: Menlo, Consolas, monaco, monospace;
+  --wpds-typography-font-size-xs:  11px;
+  --wpds-typography-font-size-sm:  12px;
+  --wpds-typography-font-size-md:  13px;
+  --wpds-typography-font-size-lg:  15px;
+  --wpds-typography-font-size-xl:  20px;
+  --wpds-typography-font-size-2xl: 32px;
+
+  /* Brand mark · saturated blue from ww.m (visually adjacent to WPDS primary) */
+  --ww-blue: #337AFC;
+
+  /* ── Legacy --wp-* aliases ──
+     Defined at :root (not under .wpds) so they resolve in inline `style`
+     attributes anywhere in admin — list-table column callbacks, post-edit
+     metabox surfaces, dynamically-rendered AJAX results — surfaces that
+     don't sit inside a .wpds wrapper. Matches the canonical token sheet
+     at docs/wpds/colors_and_type.css. */
+
+  /* Surfaces & lines — WP-admin compatibility ramp on WPDS scale */
+  --wp-bg:          #f0f0f1;
+  --wp-surface:     #ffffff;
+  --wp-sunken:      #f6f7f7;
+  --wp-line:        #dcdcde;
+  --wp-line-strong: #c3c4c7;
+  --wp-divider:     #f0f0f1;
+
+  --wp-ink:    #1d2327;
+  --wp-ink-2:  #3c434a;
+  --wp-muted:  #646970;
+  --wp-faint:  #8c8f94;
+
+  /* Brand blue — WPDS canonical primary, not WP-admin Aegean */
+  --wp-blue:      var(--wpds-primary-bg-fill-1);   /* #3858e9 */
+  --wp-blue-h:    var(--wpds-primary-bg-fill-2);   /* #2e49d9 */
+  --wp-blue-a:    var(--wpds-primary-stroke-4);    /* #2337c8 */
+  --wp-blue-fg:   #ffffff;
+  --wp-blue-tint: var(--wpds-primary-surface-2);   /* #f6f8fe */
+  --wp-blue-line: var(--wpds-primary-surface-4);   /* #e6eaf4 */
+
+  /* Status — WPDS-aligned palette */
+  --wp-success:      var(--wpds-success-fg-surface-3);
+  --wp-success-bg:   var(--wpds-success-surface-2);
+  --wp-success-line: var(--wpds-success-surface-4);
+  --wp-warn:         var(--wpds-warning-fg-surface-3);
+  --wp-warn-bg:      var(--wpds-warning-surface-2);
+  --wp-warn-line:    var(--wpds-warning-surface-4);
+  --wp-error:        var(--wpds-error-fg-surface-3);
+  --wp-error-bg:     var(--wpds-error-surface-2);
+  --wp-error-line:   var(--wpds-error-surface-4);
+
+  /* Purple is reserved for AI features ONLY (plugin-specific accent). */
+  --wp-purple:      #6c2eb9;
+  --wp-purple-bg:   #f4eefc;
+  --wp-purple-line: #d8c5ee;
+
+  --wp-mono: var(--wpds-typography-font-family-mono);
+}
+
+.wpds {
+  /* Per-scope shorthand aliases (radii + shadows) — kept here because the
+     `--r-lg` value differs (sub-tab pills override) and we don't want
+     these names to leak to the global namespace. */
+  --r-xs: var(--wpds-border-radius-xs);  /* 1 */
+  --r-sm: var(--wpds-border-radius-sm);  /* 2 */
+  --r-md: var(--wpds-border-radius-md);  /* 4 */
+  --r-lg: 6px;                            /* sub-tab pill, kept */
+  --r-xl: var(--wpds-border-radius-lg);  /* 8 */
+  --sh-sm: var(--wpds-elevation-xs);
+  --sh-md: var(--wpds-elevation-sm);
+
+  font-size: 13px;
+  color: var(--wp-ink);
+  line-height: 1.5;
+}
+
+.wpds * { box-sizing: border-box; }
+.wpds h1, .wpds h2, .wpds h3, .wpds h4 { margin: 0; font-weight: 600; color: var(--wp-ink); }
+.wpds p { margin: 0; }
+.wpds code, .wpds .wpds-mono { font-family: var(--wp-mono); font-size: 12px; }
+.wpds a { color: var(--wp-blue); text-decoration: none; }
+.wpds a:hover { color: var(--wp-blue-h); text-decoration: underline; }
+
+/* ─── Page header ─── */
+.wpds .wpds-page-title {
+  font-size: 23px;
+  font-weight: 400;
+  color: var(--wp-ink);
+  /* No bottom margin: the header cluster owns the gap now, so the title and a
+     right-hand action row sit on one baseline instead of the title pushing
+     itself away from its own siblings. */
+  margin: 0;
+  padding: 9px 0 4px;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.wpds .wpds-mark {
+  width: 22px; height: 22px;
+  background: url("../img/ww-logo.png") no-repeat center / contain;
+  border-radius: 4px;
+  /* The literal "W" character in the markup is kept as accessibility fallback
+     but hidden visually, since the PNG is the canonical brand mark. */
+  display: inline-block;
+  text-indent: -9999em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wpds .wpds-lede {
+  font-size: 13px; color: var(--wp-muted);
+  max-width: 70ch; line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+/* ─── Cards & sections ─── */
+.wpds .wpds-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-sm);
+}
+.wpds .wpds-card + .wpds-card { margin-top: 16px; }
+.wpds .wpds-card__head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wp-line);
+  background: var(--wp-sunken);
+  display: flex; align-items: center; gap: 10px;
+}
+.wpds .wpds-card__title {
+  font-size: 14px; font-weight: 600; color: var(--wp-ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.wpds .wpds-card__sub {
+  font-size: 12px; color: var(--wp-muted); font-weight: 400;
+}
+.wpds .wpds-card__meta { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; }
+.wpds .wpds-card__body { padding: 18px; }
+.wpds .wpds-card__foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--wp-line);
+  background: var(--wp-sunken);
+  display: flex; align-items: center; gap: 10px;
+}
+
+/* Collapsible card via <details class="wpds-card"><summary class="wpds-card__head">…</summary>…</details>.
+   The summary acts as the head; closed-state hides the body via the browser. A chevron is
+   appended to the head and rotates when [open]. No JS required. */
+.wpds details.wpds-card > summary { cursor: pointer; list-style: none; }
+.wpds details.wpds-card > summary::-webkit-details-marker { display: none; }
+.wpds details.wpds-card > summary::after {
+  content: ""; margin-inline-start: auto;
+  width: 7px; height: 7px;
+  border-right: 2px solid var(--wp-muted);
+  border-bottom: 2px solid var(--wp-muted);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+  flex: none;
+}
+.wpds details.wpds-card[open] > summary::after { transform: rotate(45deg); }
+.wpds details.wpds-card > summary:hover::after { border-color: var(--wp-ink-2); }
+.wpds details.wpds-card[open] > summary {
+  border-bottom: 1px solid var(--wp-line);
+}
+.wpds details.wpds-card:not([open]) > summary { border-bottom: 0; }
+
+/* ─── Form rows ─── */
+.wpds .wpds-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px 24px;
+  align-items: start;
+}
+.wpds .wpds-row + .wpds-row { margin-top: 16px; }
+.wpds .wpds-row__label {
+  padding-top: 7px;
+  font-size: 13px; font-weight: 600; color: var(--wp-ink);
+}
+.wpds .wpds-row__label .wpds-hint {
+  display: block; margin-top: 2px;
+  font-size: 12px; color: var(--wp-muted); font-weight: 400;
+}
+.wpds .wpds-row__field { min-width: 0; }
+
+/* ─── Inputs ─── */
+.wpds .wpds-input,
+.wpds .wpds-select,
+.wpds .wpds-textarea {
+  width: 100%;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line-strong);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--wp-ink);
+  line-height: 1.4;
+  min-height: 30px;
+  box-shadow: 0 0 0 transparent;
+  transition: border-color 100ms, box-shadow 100ms;
+}
+.wpds .wpds-input:focus,
+.wpds .wpds-select:focus,
+.wpds .wpds-textarea:focus {
+  outline: none;
+  border-color: var(--wp-blue);
+  box-shadow: 0 0 0 var(--wpds-border-width-focus) var(--wp-blue);
+}
+.wpds .wpds-textarea {
+  min-height: 88px; padding: 8px 10px; resize: vertical;
+  line-height: 1.55;
+}
+.wpds .wpds-textarea--mono { font-family: var(--wp-mono); font-size: 12px; }
+.wpds .wpds-input--mono { font-family: var(--wp-mono); font-size: 12px; }
+.wpds .wpds-input::placeholder,
+.wpds .wpds-textarea::placeholder { color: var(--wp-faint); }
+
+.wpds .wpds-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23646970' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-inline-end: 28px;
+}
+
+/* ─── Check / Radio (re-styled, native swap) ─── */
+.wpds .wpds-check,
+.wpds .wpds-radio {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--wp-ink);
+  cursor: pointer; user-select: none;
+}
+
+/* ─── Toggle switch ─── */
+.wpds .wpds-toggle {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--wp-ink);
+  cursor: pointer; user-select: none;
+}
+.wpds .wpds-toggle input { display: none; }
+.wpds .wpds-toggle__track {
+  width: 36px; height: 20px;
+  background: var(--wp-line-strong);
+  border-radius: 999px;
+  position: relative;
+  transition: background 120ms;
+  flex: none;
+}
+.wpds .wpds-toggle__track::after {
+  content: ""; position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: transform 140ms;
+}
+.wpds .wpds-toggle input:checked + .wpds-toggle__track { background: var(--wp-blue); }
+.wpds .wpds-toggle input:checked + .wpds-toggle__track::after { transform: translateX(16px); }
+
+/* ─── Buttons ─── */
+/* The base button IS the primary action — filled blue. There is
+   deliberately no `--primary` modifier; `--secondary` and
+   `--ghost` step down from here. Four call sites wrote
+   `wpds-btn--primary` anyway and it did nothing, which was
+   invisible because the base already looked the way they wanted. */
+.wpds .wpds-btn {
+  appearance: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 13px; font-weight: 500; line-height: 1;
+  padding: 7px 14px;
+  border: 1px solid var(--wp-blue);
+  background: var(--wp-blue);
+  color: #fff;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 80ms, border-color 80ms;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.wpds .wpds-btn:hover  { background: var(--wp-blue-h); border-color: var(--wp-blue-h); }
+.wpds .wpds-btn:active { background: var(--wp-blue-a); border-color: var(--wp-blue-a); }
+.wpds .wpds-btn--secondary {
+  background: var(--wp-surface);
+  border-color: var(--wp-blue);
+  color: var(--wp-blue);
+}
+.wpds .wpds-btn--secondary:hover { background: var(--wp-blue-tint); }
+.wpds .wpds-btn--ghost {
+  background: transparent;
+  border-color: var(--wp-line-strong);
+  color: var(--wp-ink-2);
+}
+.wpds .wpds-btn--ghost:hover { background: var(--wp-sunken); color: var(--wp-ink); }
+.wpds .wpds-btn--danger {
+  background: #fff;
+  border-color: var(--wp-error-line);
+  color: var(--wp-error);
+}
+.wpds .wpds-btn--danger:hover { background: var(--wp-error-bg); border-color: var(--wp-error); }
+/* AI button — purple, reserved for AI actions only */
+.wpds .wpds-btn--ai {
+  background: var(--wp-purple);
+  border-color: var(--wp-purple);
+  color: #fff;
+}
+.wpds .wpds-btn--ai:hover { background: #5a25a0; border-color: #5a25a0; }
+.wpds .wpds-btn--sm { padding: 4px 10px; font-size: 12px; }
+.wpds .wpds-btn--lg { padding: 9px 18px; font-size: 14px; }
+.wpds .wpds-btn--block { width: 100%; }
+.wpds .wpds-btn[disabled] {
+  background: var(--wp-sunken); border-color: var(--wp-line);
+  color: var(--wp-faint); cursor: not-allowed;
+}
+
+/* Inline SVG and Dashicons inside buttons — without these, raw <svg> elements
+   render at 0×0 (browser default for SVG with no width/height) and dashicons
+   default to 20px which doesn't sit right inside the small button variant. */
+.wpds .wpds-btn svg { width: 14px; height: 14px; vertical-align: middle; }
+.wpds .wpds-btn .dashicons {
+  width: 16px; height: 16px; font-size: 16px;
+  line-height: 1; vertical-align: middle;
+}
+.wpds .wpds-btn--sm .dashicons {
+  width: 14px; height: 14px; font-size: 14px;
+}
+
+/* ─── Icon button ─── */
+.wpds .wpds-icon-btn {
+  appearance: none;
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line-strong);
+  border-radius: var(--r-sm);
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+.wpds .wpds-icon-btn:hover { color: var(--wp-blue); border-color: var(--wp-blue); background: var(--wp-blue-tint); }
+.wpds .wpds-icon-btn--danger:hover { color: var(--wp-error); border-color: var(--wp-error); background: var(--wp-error-bg); }
+
+/* ─── Notices ─── */
+.wpds .wpds-notice {
+  position: relative;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-left: 4px solid var(--wp-line-strong);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  font-size: 13px; color: var(--wp-ink);
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 16px;
+}
+.wpds .wpds-notice__title { font-weight: 600; }
+.wpds .wpds-notice--info    { border-left-color: var(--wp-blue);    background: var(--wp-blue-tint); }
+.wpds .wpds-notice--success { border-left-color: var(--wp-success); background: var(--wp-success-bg); }
+.wpds .wpds-notice--warn    { border-left-color: var(--wp-warn);    background: var(--wp-warn-bg); }
+.wpds .wpds-notice--error   { border-left-color: var(--wp-error);   background: var(--wp-error-bg); }
+/* AI notice — purple (used when an AI feature surfaces context) */
+.wpds .wpds-notice--ai      { border-left-color: var(--wp-purple);  background: var(--wp-purple-bg); }
+
+/* ─── Badges ─── */
+.wpds .wpds-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px; font-weight: 600; line-height: 1.5;
+  border-radius: 999px;
+  background: var(--wp-line);
+  color: var(--wp-ink-2);
+  letter-spacing: 0.01em;
+}
+.wpds .wpds-badge--blue    { background: var(--wp-blue-tint);    color: var(--wp-blue); }
+.wpds .wpds-badge--success { background: var(--wp-success-bg);   color: var(--wp-success); }
+.wpds .wpds-badge--warn    { background: var(--wp-warn-bg);      color: var(--wp-warn); }
+.wpds .wpds-badge--error   { background: var(--wp-error-bg);     color: var(--wp-error); }
+.wpds .wpds-badge--ai      { background: var(--wp-purple-bg);    color: var(--wp-purple); }
+.wpds .wpds-badge--ghost   { background: transparent; border: 1px solid var(--wp-line-strong); color: var(--wp-muted); }
+.wpds .wpds-badge--dot::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.9;
+}
+
+/* ─── Variable token (used in formulas) ─── */
+.wpds .wpds-token {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px;
+  font-family: var(--wp-mono); font-size: 11px;
+  background: var(--wp-sunken);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-xs);
+  color: var(--wp-ink-2);
+  cursor: pointer;
+  margin: 2px;
+}
+.wpds .wpds-token:hover { background: var(--wp-blue-tint); border-color: var(--wp-blue); color: var(--wp-blue); }
+
+/* ─── Tables ─── */
+.wpds .wpds-tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  font-size: 13px;
+}
+.wpds .wpds-tbl thead th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: var(--wp-sunken);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--wp-line);
+  white-space: nowrap;
+}
+.wpds .wpds-tbl tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--wp-divider);
+  vertical-align: middle;
+  color: var(--wp-ink-2);
+}
+.wpds .wpds-tbl tbody tr:last-child td { border-bottom: 0; }
+.wpds .wpds-tbl tbody tr:hover { background: var(--wp-sunken); }
+
+/* ─── Sub-tabs (pill style) — used inside Bulk AI etc ─── */
+.wpds .wpds-subtabs {
+  display: inline-flex; padding: 3px;
+  background: var(--wp-sunken);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-lg);
+  gap: 2px;
+  margin-bottom: 16px;
+}
+.wpds .wpds-subtab {
+  appearance: none; border: 0; background: transparent;
+  font-size: 12px; font-weight: 500;
+  color: var(--wp-ink-2);
+  padding: 6px 12px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-decoration: none !important;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.wpds .wpds-subtab:hover { color: var(--wp-ink); background: rgba(0,0,0,0.03); }
+.wpds .wpds-subtab--active {
+  background: var(--wp-surface);
+  color: var(--wp-blue);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* ─── Progress bar ─── */
+.wpds .wpds-progress {
+  height: 8px; width: 100%;
+  background: var(--wp-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.wpds .wpds-progress__bar {
+  height: 100%;
+  background: var(--wp-blue);
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+.wpds .wpds-progress__bar--ai { background: var(--wp-purple); }
+.wpds .wpds-progress__bar--success { background: var(--wp-success); }
+
+/* ─── Helpers ─── */
+.wpds .wpds-flex { display: flex; }
+.wpds .wpds-items-center { align-items: center; }
+.wpds .wpds-justify-between { justify-content: space-between; }
+.wpds .wpds-gap-1 { gap: 4px; }
+.wpds .wpds-gap-2 { gap: 8px; }
+.wpds .wpds-gap-3 { gap: 12px; }
+.wpds .wpds-gap-4 { gap: 16px; }
+.wpds .wpds-muted { color: var(--wp-muted); }
+.wpds .wpds-faint { color: var(--wp-faint); }
+.wpds .wpds-bold { font-weight: 600; }
+.wpds .wpds-mb-2 { margin-bottom: 8px; }
+.wpds .wpds-mb-3 { margin-bottom: 12px; }
+.wpds .wpds-mb-4 { margin-bottom: 16px; }
+.wpds .wpds-mb-6 { margin-bottom: 24px; }
+.wpds .wpds-mt-2 { margin-top: 8px; }
+.wpds .wpds-mt-3 { margin-top: 12px; }
+.wpds .wpds-mt-4 { margin-top: 16px; }
+
+/* Color + surface utilities — replacements for inline `style="color:#…"` strings.
+   Scoped under .wpds AND .wpds-modal__body so they work in both contexts (the
+   modal is rendered into <body> outside the .wpds ancestor — see line ~485).
+   Use these instead of bare hex literals so a downstream theme override of the
+   token cascades everywhere. */
+.wpds .wpds-text-success,
+.wpds-modal__body .wpds-text-success { color: var(--wp-success); }
+.wpds .wpds-text-warn,
+.wpds-modal__body .wpds-text-warn    { color: var(--wp-warn); }
+.wpds .wpds-text-error,
+.wpds-modal__body .wpds-text-error   { color: var(--wp-error); }
+.wpds .wpds-text-muted,
+.wpds-modal__body .wpds-text-muted   { color: var(--wp-muted); }
+.wpds .wpds-text-faint,
+.wpds-modal__body .wpds-text-faint   { color: var(--wp-faint); }
+.wpds .wpds-text-blue,
+.wpds-modal__body .wpds-text-blue    { color: var(--wp-blue); }
+.wpds .wpds-text-ink,
+.wpds-modal__body .wpds-text-ink     { color: var(--wp-ink); }
+.wpds .wpds-bg-sunken,
+.wpds-modal__body .wpds-bg-sunken    { background: var(--wp-sunken); }
+.wpds .wpds-bg-success-bg            { background: var(--wp-success-bg); }
+.wpds .wpds-bg-warn-bg               { background: var(--wp-warn-bg); }
+.wpds .wpds-bg-error-bg              { background: var(--wp-error-bg); }
+.wpds .wpds-border-line              { border: 1px solid var(--wp-line); }
+.wpds .wpds-border-line-strong       { border: 1px solid var(--wp-line-strong); }
+
+/* ─── Status badges ─────────────────────────────────────────────────────────
+   Single source of truth for "PASS / WARN / FAIL / QUEUED / Edited / …"
+   surfaces. The PHP helper wellweb_seo_status_badge() renders this markup.
+   Each variant carries a unique dashicon (color-blind friendly) AND a label.
+   Available outside .wpds too (admin columns aren't always inside a .wpds
+   wrapper). */
+.wpds-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 500; line-height: 1;
+  padding: 2px 8px; border-radius: 999px;
+  white-space: nowrap;
+}
+.wpds-status .dashicons {
+  width: 14px; height: 14px; font-size: 14px; line-height: 1;
+}
+.wpds-status__label { display: inline-block; }
+.wpds-status--success  { color: var(--wp-success); background: var(--wp-success-bg); }
+.wpds-status--warn,
+.wpds-status--edited   { color: var(--wp-warn);    background: var(--wp-warn-bg); }
+.wpds-status--error    { color: var(--wp-error);   background: var(--wp-error-bg); }
+.wpds-status--queued,
+.wpds-status--info     { color: var(--wp-blue);    background: var(--wp-blue-tint); }
+.wpds-status--untouched{ color: var(--wp-success); background: transparent; }
+.wpds-status--neutral  { color: var(--wp-faint);   background: transparent; }
+
+/* ─── Modal ─── */
+/* Modal is rendered into the page body and toggled via [hidden] / .is-open by JS.
+   It is NOT scoped under .wpds because it's a fixed-position overlay that may
+   render across the whole admin viewport, including outside any plugin page. */
+.wpds-modal {
+  position: fixed; inset: 0;
+  /* Above the block editor's fixed sidebar/header (which sit around the
+     100000 tier). Without this the editor sidebar overlapped the modal's
+     panel and covered its Cancel/Update buttons. */
+  z-index: 160000;
+  display: flex; align-items: center; justify-content: center;
+}
+.wpds-modal[hidden] { display: none; }
+.wpds-modal__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+.wpds-modal__panel {
+  position: relative;
+  background: var(--wp-surface, #ffffff);
+  border-radius: var(--r-md, 4px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  width: 90%; max-width: 800px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  font-size: 13px; color: var(--wp-ink, #1d2327);
+}
+/* Wide variant — for code/JSON editors that need horizontal room. */
+.wpds-modal--wide .wpds-modal__panel {
+  max-width: 1200px;
+  width: 95%;
+  height: 90vh;
+}
+.wpds-modal__head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wp-line, #dcdcde);
+  background: var(--wp-sunken, #f6f7f7);
+  display: flex; align-items: center; gap: 10px;
+  border-radius: var(--r-md, 4px) var(--r-md, 4px) 0 0;
+}
+.wpds-modal__title { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
+.wpds-modal__close {
+  appearance: none; background: transparent; border: 0;
+  width: 28px; height: 28px;
+  border-radius: var(--r-sm, 3px);
+  color: var(--wp-muted, #646970);
+  font-size: 22px; line-height: 1;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.wpds-modal__close:hover { background: var(--wp-bg, #f0f0f1); color: var(--wp-ink, #1d2327); }
+.wpds-modal__body {
+  padding: 18px;
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+/* The modal is rendered into the page body (not inside a .wpds ancestor),
+   so .wpds-input / .wpds-textarea / .wpds-select rules don't reach it.
+   Re-declare the essentials so form controls render correctly inside any modal. */
+.wpds-modal__body .wpds-input,
+.wpds-modal__body .wpds-select,
+.wpds-modal__body .wpds-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--wp-surface, #ffffff);
+  border: 1px solid var(--wp-line-strong, #8c8f94);
+  border-radius: var(--r-sm, 3px);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--wp-ink, #1d2327);
+  line-height: 1.4;
+  min-height: 30px;
+}
+.wpds-modal__body .wpds-input:focus,
+.wpds-modal__body .wpds-select:focus,
+.wpds-modal__body .wpds-textarea:focus {
+  outline: none;
+  border-color: var(--wp-blue, #3858e9);
+  box-shadow: 0 0 0 var(--wpds-border-width-focus) var(--wp-blue, #3858e9);
+}
+.wpds-modal__body .wpds-textarea {
+  padding: 8px 10px;
+  resize: vertical;
+  line-height: 1.55;
+  /* In a flex column body, this lets the editor grow to fill remaining space. */
+  flex: 1 1 auto;
+  min-height: 240px;
+}
+.wpds-modal__body .wpds-textarea--mono { font-family: var(--wp-mono, monospace); font-size: 12px; }
+.wpds-modal__body .wpds-input--mono   { font-family: var(--wp-mono, monospace); font-size: 12px; }
+.wpds-modal__body p.description       { margin: 0; }
+.wpds-modal__foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--wp-line, #dcdcde);
+  background: var(--wp-sunken, #f6f7f7);
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  border-radius: 0 0 var(--r-md, 4px) var(--r-md, 4px);
+}
+body.wpds-modal-open { overflow: hidden; }
+
+/* ─── Log pre (used by Bulk AI sweeps) ─── */
+.wpds .wpds-log {
+  background: #1d2327; color: #d2d2d2;
+  padding: 10px;
+  max-height: 220px;
+  overflow: auto;
+  font-family: var(--wp-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  border-radius: var(--r-sm);
+  margin-top: 12px;
+}
+
+/* ─── API key state row (security: never echo the value) ─── */
+.wpds .wpds-key-state {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: var(--wp-sunken);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.wpds .wpds-key-state--saved   { color: var(--wp-success); }
+.wpds .wpds-key-state--empty   { color: var(--wp-muted); }
+.wpds .wpds-key-state__bullets {
+  font-family: var(--wp-mono);
+  letter-spacing: 0.18em;
+  color: var(--wp-ink-2);
+}
+
+/* AI flair inside .wpds-card heads when the card represents an AI feature */
+.wpds .wpds-card--ai .wpds-card__head {
+  background: var(--wp-purple-bg);
+  border-bottom-color: var(--wp-purple-line);
+}
+.wpds .wpds-card--ai .wpds-card__title { color: var(--wp-purple); }
+
+/* ─── Setup checklist ─── */
+.wpds .wpds-checklist {
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.wpds .wpds-checklist__item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--wp-divider);
+}
+.wpds .wpds-checklist__item:last-child { border-bottom: 0; }
+.wpds .wpds-checklist__icon {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--wp-sunken);
+  color: var(--wp-muted);
+  font-size: 13px; font-weight: 700;
+  flex: none;
+}
+.wpds .wpds-checklist__item.is-ok .wpds-checklist__icon {
+  background: var(--wp-success-bg);
+  color: var(--wp-success);
+}
+.wpds .wpds-checklist__body { flex: 1; min-width: 0; }
+.wpds .wpds-checklist__label {
+  font-weight: 600; color: var(--wp-ink);
+  font-size: 13px;
+}
+.wpds .wpds-checklist__hint {
+  font-size: 12px; color: var(--wp-muted);
+  margin-top: 2px;
+  line-height: 1.5;
+}

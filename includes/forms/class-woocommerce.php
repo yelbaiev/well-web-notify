@@ -50,18 +50,14 @@ class WellWeb_Notify_WooCommerce implements WellWeb_Notify_Form {
 
         self::$new_order_sent = true;
 
-        $subject = sprintf( 'New Order #%s', $order->get_order_number() );
-        $fields  = $this->build_order_fields( $order );
-        $body    = $this->build_order_body( $fields );
-        $meta    = $this->build_meta( $order, $fields );
-
-        $manager = WellWeb_Notify_Channel_Manager::instance();
-        $active  = $manager->get_active_channels();
-        if ( empty( $active ) ) {
-            return;
-        }
-
-        $manager->send_all( $subject, $body, $meta );
+        $this->dispatch(
+            $order,
+            sprintf(
+                /* translators: %s: order number */
+                __( 'New order #%s', 'well-web-notify' ),
+                $order->get_order_number()
+            )
+        );
     }
 
     /**
@@ -90,21 +86,16 @@ class WellWeb_Notify_WooCommerce implements WellWeb_Notify_Form {
             return;
         }
 
-        $old_label = wc_get_order_status_name( $old_status );
-        $new_label = wc_get_order_status_name( $new_status );
-
-        $subject = sprintf( 'Order #%s: %s → %s', $order->get_order_number(), $old_label, $new_label );
-        $fields  = $this->build_order_fields( $order );
-        $body    = $this->build_order_body( $fields );
-        $meta    = $this->build_meta( $order, $fields );
-
-        $manager = WellWeb_Notify_Channel_Manager::instance();
-        $active  = $manager->get_active_channels();
-        if ( empty( $active ) ) {
-            return;
-        }
-
-        $manager->send_all( $subject, $body, $meta );
+        $this->dispatch(
+            $order,
+            sprintf(
+                /* translators: 1: order number, 2: previous status, 3: new status */
+                __( 'Order #%1$s: %2$s → %3$s', 'well-web-notify' ),
+                $order->get_order_number(),
+                wc_get_order_status_name( $old_status ),
+                wc_get_order_status_name( $new_status )
+            )
+        );
     }
 
     /**
@@ -157,55 +148,69 @@ class WellWeb_Notify_WooCommerce implements WellWeb_Notify_Form {
     }
 
     /**
-     * Build legacy HTML body from fields (backward-compat).
+     * Build the message and hand it to every active channel.
+     *
+     * One place, because the two entry points above differ only in their
+     * headline and were otherwise the same nine lines twice.
+     *
+     * @param WC_Order $order
+     * @param string   $title Headline, e.g. "New order #1042".
      */
-    private function build_order_body( array $fields ): string {
-        $lines = array();
-        foreach ( $fields as $label => $value ) {
-            $lines[] = "<b>{$label}:</b> {$value}";
+    private function dispatch( WC_Order $order, string $title ): void {
+        $manager = WellWeb_Notify_Channel_Manager::instance();
+        if ( ! $manager->get_active_channels() ) {
+            return;
         }
-        return implode( "\n", $lines );
+
+        $meta = WellWeb_Notify_Message::build( array(
+            'kind'         => 'order',
+            'title'        => $title,
+            'form_name'    => '',
+            'fields'       => $this->build_order_fields( $order ),
+            'source_url'   => $order->get_edit_order_url(),
+            'source_label' => __( 'Open order', 'well-web-notify' ),
+        ) );
+
+        // The billing country gives a dialling code the label-matching in
+        // extract_phone() has no way to know, so the order's own answer wins.
+        $phone = $this->resolve_phone( $order );
+        if ( $phone !== '' ) {
+            $meta['phone'] = $phone;
+        }
+
+        $manager->send_all( $title, WellWeb_Notify_Message::plain_body( $meta ), $meta );
     }
 
     /**
-     * Build metadata array for channel manager.
+     * The customer's phone in E.164, using the billing country's dialling code
+     * when the number was typed in national form.
      */
-    private function build_meta( WC_Order $order, array $fields = array() ): array {
+    private function resolve_phone( WC_Order $order ): string {
         $phone_raw = $order->get_billing_phone();
-        $phone     = '';
-
-        if ( $phone_raw ) {
-            $country_code = '';
-            // Try to detect country code from billing country
-            $billing_country = $order->get_billing_country();
-            if ( $billing_country && function_exists( 'WC' ) ) {
-                $calling_codes = array(
-                    'US' => '1', 'CA' => '1', 'GB' => '44', 'AU' => '61',
-                    'DE' => '49', 'FR' => '33', 'SE' => '46', 'NO' => '47',
-                    'DK' => '45', 'FI' => '358', 'UA' => '380', 'PL' => '48',
-                    'IT' => '39', 'ES' => '34', 'NL' => '31', 'BE' => '32',
-                    'AT' => '43', 'CH' => '41', 'IE' => '353', 'PT' => '351',
-                    'CZ' => '420', 'RO' => '40', 'HU' => '36', 'BG' => '359',
-                    'HR' => '385', 'SK' => '421', 'SI' => '386', 'LT' => '370',
-                    'LV' => '371', 'EE' => '372', 'GR' => '30', 'IL' => '972',
-                    'IN' => '91', 'JP' => '81', 'KR' => '82', 'CN' => '86',
-                    'BR' => '55', 'MX' => '52', 'AR' => '54', 'NZ' => '64',
-                    'ZA' => '27', 'RU' => '7', 'TR' => '90', 'AE' => '971',
-                    'SA' => '966', 'EG' => '20', 'NG' => '234', 'KE' => '254',
-                    'TH' => '66', 'VN' => '84', 'PH' => '63', 'MY' => '60',
-                    'SG' => '65', 'ID' => '62', 'PK' => '92', 'BD' => '880',
-                    'CL' => '56', 'CO' => '57', 'PE' => '51',
-                );
-                $country_code = $calling_codes[ $billing_country ] ?? '';
-            }
-            $phone = wellweb_notify_normalize_phone( $phone_raw, $country_code );
+        if ( ! $phone_raw ) {
+            return '';
         }
 
-        return array(
-            'form_name' => 'WooCommerce Order #' . $order->get_order_number(),
-            'site_url'  => home_url(),
-            'phone'     => $phone,
-            'fields'    => $fields,
+        $calling_codes = array(
+            'US' => '1', 'CA' => '1', 'GB' => '44', 'AU' => '61',
+            'DE' => '49', 'FR' => '33', 'SE' => '46', 'NO' => '47',
+            'DK' => '45', 'FI' => '358', 'UA' => '380', 'PL' => '48',
+            'IT' => '39', 'ES' => '34', 'NL' => '31', 'BE' => '32',
+            'AT' => '43', 'CH' => '41', 'IE' => '353', 'PT' => '351',
+            'CZ' => '420', 'RO' => '40', 'HU' => '36', 'BG' => '359',
+            'HR' => '385', 'SK' => '421', 'SI' => '386', 'LT' => '370',
+            'LV' => '371', 'EE' => '372', 'GR' => '30', 'IL' => '972',
+            'IN' => '91', 'JP' => '81', 'KR' => '82', 'CN' => '86',
+            'BR' => '55', 'MX' => '52', 'AR' => '54', 'NZ' => '64',
+            'ZA' => '27', 'RU' => '7', 'TR' => '90', 'AE' => '971',
+            'SA' => '966', 'EG' => '20', 'NG' => '234', 'KE' => '254',
+            'TH' => '66', 'VN' => '84', 'PH' => '63', 'MY' => '60',
+            'SG' => '65', 'ID' => '62', 'PK' => '92', 'BD' => '880',
+            'CL' => '56', 'CO' => '57', 'PE' => '51',
         );
+
+        $country = $order->get_billing_country();
+
+        return wellweb_notify_normalize_phone( $phone_raw, $calling_codes[ $country ] ?? '' );
     }
 }

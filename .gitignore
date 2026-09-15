@@ -14,6 +14,9 @@ vendor/
 # Build
 dist/
 
+# Tooling scratch
+.playwright-mcp/
+
 # Locks
 composer.lock
 package-lock.json

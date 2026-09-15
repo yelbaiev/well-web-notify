@@ -33,35 +33,36 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
             return new WP_Error( 'not_configured', __( 'Slack is not configured.', 'well-web-notify' ) );
         }
 
-        // Build body from structured fields if available
-        if ( ! empty( $meta['fields'] ) ) {
-            $lines = array();
-            foreach ( $meta['fields'] as $label => $value ) {
-                $lines[] = "*{$label}:* {$value}";
-            }
-            $formatted_body = implode( "\n", $lines );
-        } else {
-            $formatted_body = $body;
-        }
+        $meta = WellWeb_Notify_Message::ensure( $meta, $subject, $body );
 
         $blocks = array(
             array(
                 'type' => 'header',
                 'text' => array(
                     'type' => 'plain_text',
-                    'text' => wellweb_notify_site_domain(),
-                ),
-            ),
-            array(
-                'type' => 'section',
-                'text' => array(
-                    'type' => 'mrkdwn',
-                    'text' => $formatted_body,
+                    'text' => $meta['title'],
                 ),
             ),
         );
 
-        // Contact links
+        $context = WellWeb_Notify_Message::context_line( $meta );
+        if ( $context !== '' ) {
+            $blocks[] = array(
+                'type'     => 'context',
+                'elements' => array(
+                    array( 'type' => 'mrkdwn', 'text' => self::escape( $context ) ),
+                ),
+            );
+        }
+
+        $lines = WellWeb_Notify_Message::field_lines( $meta, '*', '*', array( __CLASS__, 'escape' ) );
+        if ( $lines !== '' ) {
+            $blocks[] = array(
+                'type' => 'section',
+                'text' => array( 'type' => 'mrkdwn', 'text' => $lines ),
+            );
+        }
+
         if ( ! empty( $meta['phone'] ) ) {
             $links    = wellweb_notify_phone_links( $meta['phone'] );
             $blocks[] = array(
@@ -81,8 +82,25 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
             );
         }
 
+        if ( ! empty( $meta['source_url'] ) ) {
+            $blocks[] = array(
+                'type'     => 'context',
+                'elements' => array(
+                    array(
+                        'type' => 'mrkdwn',
+                        'text' => sprintf(
+                            '<%s|%s>',
+                            $meta['source_url'],
+                            self::escape( WellWeb_Notify_Message::source_label( $meta ) )
+                        ),
+                    ),
+                ),
+            );
+        }
+
         $payload = array(
-            'text'   => $subject . "\n" . $body,
+            // Fallback text: what a notification preview and a screen reader get.
+            'text'   => $meta['title'] . ( $context !== '' ? ' — ' . $context : '' ),
             'blocks' => $blocks,
         );
 
@@ -106,54 +124,49 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
         return $this->handle_response( $response );
     }
 
+    /**
+     * Slack's three reserved characters in mrkdwn text.
+     *
+     * https://api.slack.com/reference/surfaces/formatting#escaping
+     */
+    public static function escape( string $text ): string {
+        return str_replace( array( '&', '<', '>' ), array( '&amp;', '&lt;', '&gt;' ), $text );
+    }
+
     public function send_test() {
-        return $this->send(
-            __( 'Well Web Notify — Test', 'well-web-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
-            array( 'form_name' => 'Test' )
-        );
+        $meta = wellweb_notify_test_message();
+        return $this->send( $meta['title'], $meta['note'], $meta );
     }
 
     public function render_settings(): void {
-        $webhook  = $this->get_webhook();
-        $bot_name = wellweb_notify_get_option( 'slack-bot-name', '' );
-        $icon_url = wellweb_notify_get_option( 'slack-icon-url', '' );
-        ?>
-        <div class="ww-notify-channel-settings" data-channel="slack">
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'well-web-notify' ); ?></span>
-                <input type="password"
-                       name="well-web-notify-slack-webhook"
-                       value=""
-                       placeholder="<?php echo $webhook ? esc_attr( wellweb_notify_mask( $webhook ) ) : 'https://hooks.slack.com/services/...'; ?>"
-                       class="regular-text"
-                       autocomplete="off" />
-                <span class="description">
-                    <?php esc_html_e( 'Create an Incoming Webhook in your Slack workspace settings.', 'well-web-notify' ); ?>
-                </span>
-            </label>
+        $webhook = $this->get_webhook();
 
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Display Name', 'well-web-notify' ); ?></span>
-                <input type="text"
-                       name="well-web-notify-slack-bot-name"
-                       value="<?php echo esc_attr( $bot_name ); ?>"
-                       placeholder="Well Web Notify"
-                       class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default name. Leave empty to use Slack app settings.', 'well-web-notify' ); ?></span>
-            </label>
-
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Icon URL', 'well-web-notify' ); ?></span>
-                <input type="url"
-                       name="well-web-notify-slack-icon-url"
-                       value="<?php echo esc_attr( $icon_url ); ?>"
-                       placeholder="https://example.com/icon.png"
-                       class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default icon. Must be a public image URL.', 'well-web-notify' ); ?></span>
-            </label>
-        </div>
-        <?php
+        wellweb_notify_render_fields( array(
+            array(
+                'name'        => 'well-web-notify-slack-webhook',
+                'label'       => __( 'Webhook URL', 'well-web-notify' ),
+                'type'        => 'password',
+                'masked'      => true,
+                'placeholder' => $webhook ? wellweb_notify_mask( $webhook ) : 'https://hooks.slack.com/services/…',
+                'hint'        => __( 'An Incoming Webhook, which decides the workspace and the channel.', 'well-web-notify' ),
+            ),
+            array(
+                'name'        => 'well-web-notify-slack-bot-name',
+                'label'       => __( 'Display name', 'well-web-notify' ),
+                'type'        => 'text',
+                'value'       => wellweb_notify_get_option( 'slack-bot-name', '' ),
+                'placeholder' => 'Well Web Notify',
+                'hint'        => __( 'Optional. Leave empty to use whatever the Slack app is called.', 'well-web-notify' ),
+            ),
+            array(
+                'name'        => 'well-web-notify-slack-icon-url',
+                'label'       => __( 'Icon URL', 'well-web-notify' ),
+                'type'        => 'url',
+                'value'       => wellweb_notify_get_option( 'slack-icon-url', '' ),
+                'placeholder' => 'https://example.com/icon.png',
+                'hint'        => __( 'Optional. Must be a publicly reachable image.', 'well-web-notify' ),
+            ),
+        ) );
     }
 
     public function get_settings(): array {

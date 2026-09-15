@@ -31,16 +31,20 @@ class WellWeb_Notify_CF7 implements WellWeb_Notify_Form {
         $data      = $submission->get_posted_data();
         $form_name = $contact_form->title();
 
-        // Filter out internal CF7 fields
-        $fields = array();
-        foreach ( $data as $key => $value ) {
-            if ( strpos( $key, '_wpcf7' ) === 0 ) {
-                continue;
-            }
-            $label = ucfirst( str_replace( array( '-', '_' ), ' ', $key ) );
-            $fields[ $label ] = is_array( $value ) ? implode( ', ', $value ) : $value;
+        // Handed over as CF7 stores them — input slugs (`your-name`) and its own
+        // `_wpcf7*` bookkeeping. WellWeb_Notify_Message turns the first into a
+        // label and drops the second, the same way it does for every other
+        // integration.
+        $source_url = '';
+        $post_id    = (int) $submission->get_meta( 'container_post_id' );
+        if ( $post_id > 0 ) {
+            $source_url = (string) get_permalink( $post_id );
         }
 
-        WellWeb_Notify_Form_Manager::handle_submission( $form_name, $fields );
+        WellWeb_Notify_Form_Manager::handle_submission(
+            $form_name,
+            (array) $data,
+            array( 'source_url' => $source_url )
+        );
     }
 }

@@ -1,4 +1,54 @@
 <?php
+/**
+ * Jetpack Forms → Well Web Notify.
+ *
+ * ── Why this file does not send from a hook ─────────────────────────────────
+ *
+ * Jetpack exposes one submission through four signals, and they do not carry
+ * the same data. Reading Jetpack 16.2
+ * (`jetpack-forms/src/contact-form/class-feedback.php`):
+ *
+ *   `get_all_values()`    every compiled field, keyed `"{n}_{Label}"`, MERGED
+ *                         with `get_entry_values()` — which adds `entry_title`,
+ *                         `entry_permalink`, `feedback_id` and
+ *                         `email_marketing_consent` to the same array.
+ *
+ *   `get_legacy_extra_values()`
+ *                         only the fields Jetpack does not treat as standard
+ *                         (so: not name, email, url, subject, textarea), keyed
+ *                         `"{n}_{Label}"` with a counter that CONTINUES past
+ *                         the ones already in all-values. A form with Имя +
+ *                         Телефон gives `1_Имя`, `2_Телефон` in all-values and
+ *                         `3_Телефон` in extra-values: the same field, twice,
+ *                         under two keys.
+ *
+ * And `class-contact-form.php` writes `_feedback_extra_fields` — the extra
+ * values ONLY — before it fires `grunion_pre_message_sent`, which is before
+ * `grunion_after_message_sent`.
+ *
+ * The previous version listened on all four and let whichever arrived first
+ * dispatch. That produced two different messages from the same form:
+ *
+ *   - meta listener first  → one field, `3 Телефон`, and nothing else
+ *   - after-message first  → every field, the phone twice, plus three internal
+ *                            keys (`Entry title`, `Entry permalink`,
+ *                            `Feedback id`)
+ *
+ * Which one you got depended on whether `update_post_meta` happened to change
+ * the stored value — a no-op write fires no hook. That is the "sometimes all
+ * the fields, sometimes not" this file was rewritten to fix.
+ *
+ * ── What it does instead ────────────────────────────────────────────────────
+ *
+ * Nothing sends from a hook. Each listener OFFERS its payload with a rank, the
+ * best offer per feedback post is kept, and the winner is sent once on
+ * `shutdown`. That runs even though Jetpack redirects and exits, because
+ * WordPress registers `shutdown_action_hook` with `register_shutdown_function`.
+ *
+ * `$extra_values` is deliberately NOT merged into `$all_values` any more: it is
+ * a subset of it under different keys, and merging the two is what printed the
+ * phone number twice.
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -7,10 +57,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
 
     /**
-     * Per-request dedupe map keyed by feedback / form post ID, so multiple
-     * listeners can't double-send for the same submission.
+     * Best offer so far, per feedback post ID.
+     *
+     * @var array<int,array{rank:int,fields:array,post_id:int}>
      */
-    private static $dispatched = array();
+    private static $pending = array();
+
+    /** Feedback posts already sent this request, so a late offer cannot double-send. */
+    private static $sent = array();
+
+    /**
+     * How much each signal is trusted, highest first.
+     *
+     * `grunion_after_message_sent` is top because it is the only one that
+     * arrives with the complete compiled field set as an argument. The meta
+     * keys are bottom because on the modern Forms-block path they hold the
+     * extra fields only — a real payload, but a partial one.
+     */
+    private const RANK_AFTER_SENT = 30;
+    private const RANK_PRE_SENT   = 20;
+    private const RANK_META       = 10;
+    private const RANK_TRANSITION = 5;
+
+    /**
+     * Meta keys Jetpack has used to stamp the field payload onto a feedback
+     * post, newest first. Read defensively — both are still written by some
+     * version in the wild.
+     */
+    private const FIELD_META_KEYS = array( '_feedback_extra_fields', '_feedback_all_fields' );
 
     public function get_slug(): string {
         return 'jetpack';
@@ -24,121 +98,61 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
         return defined( 'JETPACK__VERSION' ) || class_exists( 'Automattic\Jetpack\Forms\ContactForm\Contact_Form' );
     }
 
-    /**
-     * Meta keys Jetpack uses to stamp the submitted field payload onto a
-     * feedback post. Modern Jetpack (15.x) uses `_feedback_extra_fields`;
-     * older versions used `_feedback_all_fields`. Both are listened on for
-     * cross-version coverage; the per-request dedupe map ensures only the
-     * first one that arrives triggers a dispatch.
-     */
-    private const FIELD_META_KEYS = array( '_feedback_extra_fields', '_feedback_all_fields' );
-
     public function register_hooks(): void {
-        // Modern Jetpack (15.x and forward): the only hook that fires on
-        // Forms-block submissions AND carries the field payload as an arg.
-        // `grunion_pre_message_sent` was dropped; meta keys like
-        // `_feedback_extra_fields` are written empty in this branch.
-        // Signature: ($post_id, $to, $subject, $message, $headers, $all_values, $extra_values).
+        // Modern Jetpack (15+): fires on Forms-block submissions and carries
+        // the complete field set.
+        // ($post_id, $to, $subject, $message, $headers, $all_values, $extra_values)
         add_action( 'grunion_after_message_sent', array( $this, 'on_after_message_sent' ), 10, 7 );
 
-        // Legacy / classic [contact-form] shortcode path (pre-Jetpack 15).
-        add_action( 'grunion_pre_message_sent', array( $this, 'on_submit' ), 10, 3 );
+        // Classic [contact-form] shortcode path. Still fires in 16.x, but only
+        // when Jetpack is actually going to send the email.
+        add_action( 'grunion_pre_message_sent', array( $this, 'on_pre_message_sent' ), 10, 3 );
 
-        // Older Forms block (Jetpack 13–14): field payload was stamped to
-        // `_feedback_extra_fields` or `_feedback_all_fields` as a real array.
-        // Kept as a defensive fallback; dedupe ensures no doubles when
-        // `grunion_after_message_sent` fires in the same request.
-        add_action( 'added_post_meta',   array( $this, 'on_feedback_fields_meta' ), 10, 4 );
+        // The feedback post's own meta. Partial on the modern path, complete on
+        // older ones, so it is an offer rather than a send.
+        add_action( 'added_post_meta', array( $this, 'on_feedback_fields_meta' ), 10, 4 );
         add_action( 'updated_post_meta', array( $this, 'on_feedback_fields_meta' ), 10, 4 );
 
-        // Last-resort fallback for flows that create a populated feedback
-        // post in one shot (importers, scripted creation).
+        // Importers and scripted creation, which insert a populated feedback
+        // post in one shot and fire none of the above.
         add_action( 'transition_post_status', array( $this, 'on_feedback_transition' ), 10, 3 );
+
+        // Whatever won, sent once, after Jetpack has finished with the request.
+        add_action( 'shutdown', array( $this, 'dispatch_pending' ), 5 );
     }
 
     /**
-     * @param int    $post_id     Post ID the form is on.
-     * @param array  $all_values  All submitted field values.
-     * @param array  $extra_values Extra metadata.
+     * @param int   $post_id      Feedback post ID.
+     * @param array $all_values   Every compiled field, plus Jetpack's entry keys.
+     * @param array $extra_values The non-standard subset. Not used — see the file header.
      */
-    public function on_submit( $post_id, $all_values, $extra_values ) {
-        $fields = (array) $all_values;
-        if ( empty( $fields ) ) {
-            return;
-        }
-
-        if ( ! $this->claim_dispatch( (int) $post_id ) ) {
-            return;
-        }
-
-        $post      = get_post( $post_id );
-        $form_name = $post ? $post->post_title : __( 'Jetpack Form', 'well-web-notify' );
-
-        WellWeb_Notify_Form_Manager::handle_submission( $form_name, $this->parse_fields( $fields ) );
+    public function on_pre_message_sent( $post_id, $all_values, $extra_values ) {
+        $this->offer( (int) $post_id, (array) $all_values, self::RANK_PRE_SENT );
     }
 
     /**
-     * Modern Jetpack (15+). Fires after Jetpack has built the email payload
-     * for a submission. $all_values contains the form field values keyed by
-     * label. This is the only signal in 15.x that arrives with the data
-     * populated — the pre-message hook was removed and the corresponding
-     * meta key is now stamped empty.
-     *
-     * Signature matches the canonical Grunion hook:
-     *   $post_id, $to, $subject, $message, $headers, $all_values, $extra_values
+     * @param int    $post_id
+     * @param mixed  $to
+     * @param string $subject
+     * @param string $message
+     * @param mixed  $headers
+     * @param array  $all_values
+     * @param array  $extra_values Not used — a subset of $all_values under different keys.
      */
     public function on_after_message_sent( $post_id, $to, $subject, $message, $headers, $all_values, $extra_values ) {
-        $fields = (array) $all_values;
-        if ( ! empty( $extra_values ) && is_array( $extra_values ) ) {
-            $fields = array_merge( $fields, $extra_values );
-        }
-        if ( empty( $fields ) ) {
-            return;
-        }
-
-        if ( ! $this->claim_dispatch( (int) $post_id ) ) {
-            return;
-        }
-
-        $post = $post_id ? get_post( $post_id ) : null;
-        if ( $post instanceof WP_Post ) {
-            $form_name = $this->resolve_form_name( $post );
-        } else {
-            $form_name = is_string( $subject ) && $subject !== ''
-                ? $subject
-                : __( 'Jetpack Form', 'well-web-notify' );
-        }
-
-        WellWeb_Notify_Form_Manager::handle_submission( $form_name, $this->parse_fields( $fields ) );
+        $this->offer( (int) $post_id, (array) $all_values, self::RANK_AFTER_SENT );
     }
 
     /**
-     * Catches the new Forms block flow: dispatch the moment Jetpack writes
-     * `_feedback_all_fields` onto a feedback post.
+     * Jetpack stamped the field payload onto the feedback post.
      *
-     * @param int    $meta_id    Meta row ID.
+     * @param int    $meta_id
      * @param int    $object_id  Post ID.
-     * @param string $meta_key   Meta key.
-     * @param mixed  $meta_value Meta value (already unserialized).
+     * @param string $meta_key
+     * @param mixed  $meta_value Already unserialized.
      */
     public function on_feedback_fields_meta( $meta_id, $object_id, $meta_key, $meta_value ) {
         if ( ! in_array( $meta_key, self::FIELD_META_KEYS, true ) ) {
-            return;
-        }
-
-        // Defensive read: get_post_meta returns the unserialized PHP value
-        // regardless of how the meta was stored, so we don't depend on the
-        // shape of the $meta_value parameter handed to the callback.
-        $fields = $this->read_field_meta( (int) $object_id );
-        if ( empty( $fields ) && is_array( $meta_value ) && ! empty( $meta_value ) ) {
-            $fields = $meta_value;
-        }
-        if ( empty( $fields ) ) {
-            // Jetpack 15 hits this branch every time — `_feedback_extra_fields`
-            // is written as an empty array on the modern Forms-block path.
-            // Critically, we MUST NOT claim the dispatch slot here, or we'd
-            // block `grunion_after_message_sent` from dispatching with the
-            // real payload that arrives ~50 ms later.
             return;
         }
 
@@ -150,20 +164,18 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
             return;
         }
 
-        if ( ! $this->claim_dispatch( (int) $object_id ) ) {
-            return;
+        // Read through get_post_meta rather than trusting the callback's
+        // argument, which is the pre-serialisation value on some paths.
+        $fields = $this->read_field_meta( (int) $object_id );
+        if ( ! $fields && is_array( $meta_value ) ) {
+            $fields = $meta_value;
         }
 
-        WellWeb_Notify_Form_Manager::handle_submission(
-            $this->resolve_form_name( $post ),
-            $this->parse_fields( $fields )
-        );
+        $this->offer( (int) $object_id, (array) $fields, self::RANK_META );
     }
 
     /**
-     * Defensive fallback: a feedback post is transitioned to publish and
-     * already has its field payload at insert time. Rare in modern Jetpack
-     * but catches importer / scripted creation paths.
+     * A feedback post published with its payload already attached.
      */
     public function on_feedback_transition( $new_status, $old_status, $post ) {
         if ( ! $post instanceof WP_Post || $post->post_type !== 'feedback' ) {
@@ -173,58 +185,83 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
             return;
         }
 
-        $all_values = $this->read_field_meta( $post->ID );
-        if ( empty( $all_values ) ) {
-            // Modern Jetpack hits this branch — meta isn't stamped yet, or
-            // is stamped empty. The grunion_after_message_sent / meta
-            // listeners will pick it up later. Do NOT claim the dispatch
-            // slot here.
+        $this->offer( (int) $post->ID, $this->read_field_meta( (int) $post->ID ), self::RANK_TRANSITION );
+    }
+
+    /**
+     * Record a candidate payload. Highest rank wins; at equal rank, the one
+     * with more fields wins, because two listeners of the same rank differing
+     * in size means one of them caught a partial write.
+     *
+     * An empty payload is not an offer at all — recording it would let an
+     * empty `_feedback_extra_fields` write (which Jetpack 15+ does on every
+     * Forms-block submission) sit in the slot the real payload needs.
+     */
+    private function offer( int $post_id, array $fields, int $rank ): void {
+        if ( ! $fields || isset( self::$sent[ $post_id ] ) ) {
             return;
         }
 
-        if ( ! $this->claim_dispatch( (int) $post->ID ) ) {
-            return;
+        $existing = self::$pending[ $post_id ] ?? null;
+        if ( $existing !== null ) {
+            if ( $existing['rank'] > $rank ) {
+                return;
+            }
+            if ( $existing['rank'] === $rank && count( $existing['fields'] ) >= count( $fields ) ) {
+                return;
+            }
         }
 
-        WellWeb_Notify_Form_Manager::handle_submission(
-            $this->resolve_form_name( $post ),
-            $this->parse_fields( $all_values )
+        self::$pending[ $post_id ] = array(
+            'rank'    => $rank,
+            'fields'  => $fields,
+            'post_id' => $post_id,
         );
     }
 
     /**
-     * Atomic check-and-claim. Returns true if THIS call gets to dispatch for
-     * the given post; false if a prior call has already claimed it. Only call
-     * this AFTER all skip / empty-payload checks — calling it earlier would
-     * "steal" the dispatch slot from a later, better-populated arrival
-     * (e.g. an empty `_feedback_extra_fields` meta write stealing the slot
-     * from `grunion_after_message_sent`).
+     * Send every submission collected this request, once each.
+     *
+     * Public because it is a hook callback, and because the tests call it
+     * directly rather than triggering a real shutdown.
      */
-    private function claim_dispatch( int $key ): bool {
-        if ( isset( self::$dispatched[ $key ] ) ) {
-            return false;
+    public function dispatch_pending(): void {
+        if ( ! self::$pending ) {
+            return;
         }
-        self::$dispatched[ $key ] = true;
-        return true;
-    }
 
-    private function parse_fields( array $all_values ): array {
-        $fields = array();
-        foreach ( $all_values as $key => $value ) {
-            $label = ucfirst( str_replace( array( '-', '_' ), ' ', (string) $key ) );
-            if ( is_array( $value ) ) {
-                $value = implode( ', ', array_map(
-                    static function ( $v ) {
-                        return is_scalar( $v ) ? (string) $v : '';
-                    },
-                    $value
-                ) );
+        $pending        = self::$pending;
+        self::$pending  = array();
+
+        foreach ( $pending as $post_id => $offer ) {
+            if ( isset( self::$sent[ $post_id ] ) ) {
+                continue;
             }
-            $fields[ $label ] = $value;
+            self::$sent[ $post_id ] = true;
+
+            $post = $post_id ? get_post( $post_id ) : null;
+
+            // `grunion_after_message_sent` fires for spam too — it sits outside
+            // Jetpack's `$will_send` branch. By shutdown the feedback post has
+            // its final status, so this is the first point at which the answer
+            // is actually known.
+            if ( $post instanceof WP_Post && in_array( $post->post_status, array( 'spam', 'trash' ), true ) ) {
+                continue;
+            }
+
+            WellWeb_Notify_Form_Manager::handle_submission(
+                $post instanceof WP_Post ? $this->resolve_form_name( $post ) : __( 'Jetpack Form', 'well-web-notify' ),
+                $offer['fields'],
+                array(
+                    'source_url' => $post instanceof WP_Post ? $this->resolve_source_url( $post ) : '',
+                )
+            );
         }
-        return $fields;
     }
 
+    /**
+     * Which form was this, in the words the site owner would use.
+     */
     private function resolve_form_name( WP_Post $post ): string {
         // Modern Jetpack stamps the source post ID directly — cheapest, most reliable.
         $source_id = (int) get_post_meta( $post->ID, '_feedback_source_post_id', true );
@@ -252,6 +289,24 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
         }
 
         return __( 'Jetpack Form', 'well-web-notify' );
+    }
+
+    /**
+     * The page the form sits on — one link at the foot of the message, rather
+     * than an `Entry permalink:` row in the middle of the answers.
+     */
+    private function resolve_source_url( WP_Post $post ): string {
+        $source_id = (int) get_post_meta( $post->ID, '_feedback_source_post_id', true );
+        if ( $source_id > 0 ) {
+            $permalink = get_permalink( $source_id );
+            if ( $permalink ) {
+                return $permalink;
+            }
+        }
+
+        $parent_url = get_post_meta( $post->ID, '_feedback_parent_url', true );
+
+        return is_string( $parent_url ) ? esc_url_raw( $parent_url ) : '';
     }
 
     private function read_field_meta( int $post_id ): array {

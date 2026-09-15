@@ -70,16 +70,17 @@ class WellWeb_Notify_Health_Check {
             }
 
             // Send a health check message to the channel
-            $check_result = $channel->send(
-                __( 'Daily health check', 'well-web-notify' ),
-                sprintf(
-                    /* translators: 1: channel name e.g. "Telegram", 2: site domain */
-                    __( '%1$s connection is healthy — notifications from %2$s are being delivered.', 'well-web-notify' ),
-                    $channel->get_label(),
-                    $domain
+            $message = WellWeb_Notify_Message::build( array(
+                'kind'  => 'health',
+                'title' => __( 'Daily health check', 'well-web-notify' ),
+                'note'  => sprintf(
+                    /* translators: %s: channel name e.g. "Telegram" */
+                    __( 'This site can still reach %s. Form submissions are being delivered.', 'well-web-notify' ),
+                    $channel->get_label()
                 ),
-                array( 'form_name' => 'Health Check' )
-            );
+            ) );
+
+            $check_result = $channel->send( $message['title'], $message['note'], $message );
 
             if ( is_wp_error( $check_result ) ) {
                 $results[ $slug ] = array(

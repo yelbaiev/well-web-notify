@@ -56,8 +56,18 @@ class WellWeb_Notify_Form_Manager {
 
     /**
      * Common handler called by all form integrations after parsing submission data.
+     *
+     * The integrations hand over whatever their form plugin gave them, keys and
+     * all. Everything that turns that into something a person can read —
+     * dropping the plugin's own bookkeeping keys, stripping index prefixes,
+     * collapsing duplicates — happens in WellWeb_Notify_Message, so it happens
+     * the same way for all six integrations.
+     *
+     * @param string $form_name Which form this was.
+     * @param array  $fields    Raw submitted values, as the form plugin had them.
+     * @param array  $args      Optional extras: `source_url`, `title`, `kind`.
      */
-    public static function handle_submission( string $form_name, array $fields ) {
+    public static function handle_submission( string $form_name, array $fields, array $args = array() ) {
         $manager = WellWeb_Notify_Channel_Manager::instance();
         $active  = $manager->get_active_channels();
 
@@ -65,40 +75,29 @@ class WellWeb_Notify_Form_Manager {
             return;
         }
 
+        $meta = WellWeb_Notify_Message::build( array(
+            'kind'       => $args['kind'] ?? 'form',
+            'title'      => $args['title'] ?? __( 'New form submission', 'well-web-notify' ),
+            'form_name'  => $form_name,
+            'fields'     => $fields,
+            'source_url' => $args['source_url'] ?? '',
+        ) );
+
+        if ( empty( $meta['fields'] ) ) {
+            // Everything the form sent was bookkeeping. A message with a
+            // heading and no answers tells the reader nothing and trains them
+            // to ignore the next one.
+            return;
+        }
+
         $subject = sprintf(
             /* translators: %s: form name */
             __( 'New submission: %s', 'well-web-notify' ),
-            $form_name
+            $meta['form_name'] !== '' ? $meta['form_name'] : $form_name
         );
 
-        // Clean field values
-        $clean_fields = array();
-        foreach ( $fields as $label => $value ) {
-            if ( is_array( $value ) ) {
-                $value = implode( ', ', $value );
-            }
-            $value = wp_strip_all_tags( (string) $value );
-            if ( $value !== '' ) {
-                $clean_fields[ $label ] = $value;
-            }
-        }
-
-        $phone = wellweb_notify_extract_phone( $fields );
-        $meta  = array(
-            'form_name' => $form_name,
-            'site_url'  => home_url(),
-            'phone'     => $phone,
-            'fields'    => $clean_fields,
-        );
-
-        // Legacy body for backward-compat with third-party channels
-        $lines = array();
-        foreach ( $clean_fields as $label => $value ) {
-            $lines[] = "<b>{$label}:</b> {$value}";
-        }
-        $body = implode( "\n", $lines );
-
-        $manager->send_all( $subject, $body, $meta );
+        // Plain body, for third-party channels written against the old signature.
+        $manager->send_all( $subject, WellWeb_Notify_Message::plain_body( $meta ), $meta );
     }
 }
 

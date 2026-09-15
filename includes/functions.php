@@ -426,6 +426,23 @@ function wellweb_notify_phone_links( string $phone ): array {
     );
 }
 
+/**
+ * The message the "Test" button sends.
+ *
+ * One definition for all four channels: they were sending four slightly
+ * different sentences, and a test whose wording depends on which channel you
+ * pressed it in is a test you cannot compare.
+ *
+ * @return array
+ */
+function wellweb_notify_test_message(): array {
+    return WellWeb_Notify_Message::build( array(
+        'kind'  => 'test',
+        'title' => __( 'Test message', 'well-web-notify' ),
+        'note'  => __( 'Connected. New form submissions from this site will arrive here.', 'well-web-notify' ),
+    ) );
+}
+
 // ─── Encryption health admin notice ──────────────────────────
 
 add_action( 'admin_notices', 'wellweb_notify_encryption_notice' );

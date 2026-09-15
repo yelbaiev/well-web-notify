@@ -109,9 +109,10 @@ class WellWeb_Notify_Review_Notice {
             return false;
         }
 
-        // Limit to the plugin's own admin pages.
+        // Limit to the plugin's own screens.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading the current screen, not acting on it.
         $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-        if ( $page !== 'well-web-notify-settings' && $page !== 'well-web-notify-log' ) {
+        if ( ! in_array( $page, wellweb_notify_pages(), true ) ) {
             return false;
         }
 

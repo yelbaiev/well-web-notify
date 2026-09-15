@@ -1,6 +1,9 @@
 <?php
 /**
- * WordPress Dashboard Widget for Well Web Notify
+ * The WordPress dashboard widget.
+ *
+ * Answers one question — is anything broken — and gets out of the way. It does
+ * not try to be the Channels screen in miniature.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,45 +26,49 @@ function wellweb_notify_dashboard_widget() {
 function wellweb_notify_dashboard_widget_content() {
     $manager  = WellWeb_Notify_Channel_Manager::instance();
     $channels = $manager->get_channels();
-    $active   = $manager->get_active_channels();
     $stats    = WellWeb_Notify_Log::get_stats( 7 );
-
     ?>
-    <div class="ww-notify-widget">
-        <!-- Stats -->
-        <div class="ww-notify-widget-stats">
-            <div class="ww-notify-widget-stat --total">
-                <div class="ww-notify-widget-stat-value"><?php echo (int) $stats['total']; ?></div>
-                <div class="ww-notify-widget-stat-label"><?php esc_html_e( 'Sent (7d)', 'well-web-notify' ); ?></div>
+    <div class="wellweb-notify-widget">
+        <div class="wellweb-notify-widget-stats">
+            <div class="wellweb-notify-widget-stat">
+                <div class="wellweb-notify-widget-stat-value"><?php echo esc_html( number_format_i18n( $stats['total'] ) ); ?></div>
+                <div class="wellweb-notify-widget-stat-label"><?php esc_html_e( 'Sent, 7 days', 'well-web-notify' ); ?></div>
             </div>
-            <div class="ww-notify-widget-stat --success">
-                <div class="ww-notify-widget-stat-value"><?php echo (int) $stats['success']; ?></div>
-                <div class="ww-notify-widget-stat-label"><?php esc_html_e( 'Success', 'well-web-notify' ); ?></div>
+            <div class="wellweb-notify-widget-stat">
+                <div class="wellweb-notify-widget-stat-value"><?php echo esc_html( number_format_i18n( $stats['success'] ) ); ?></div>
+                <div class="wellweb-notify-widget-stat-label"><?php esc_html_e( 'Delivered', 'well-web-notify' ); ?></div>
             </div>
-            <div class="ww-notify-widget-stat --error <?php echo $stats['error'] > 0 ? '--has-errors' : ''; ?>">
-                <div class="ww-notify-widget-stat-value"><?php echo (int) $stats['error']; ?></div>
-                <div class="ww-notify-widget-stat-label"><?php esc_html_e( 'Errors', 'well-web-notify' ); ?></div>
+            <div class="wellweb-notify-widget-stat <?php echo $stats['error'] > 0 ? 'is-bad' : ''; ?>">
+                <div class="wellweb-notify-widget-stat-value"><?php echo esc_html( number_format_i18n( $stats['error'] ) ); ?></div>
+                <div class="wellweb-notify-widget-stat-label"><?php esc_html_e( 'Failed', 'well-web-notify' ); ?></div>
             </div>
         </div>
 
-        <!-- Channel status -->
-        <h4><?php esc_html_e( 'Channels', 'well-web-notify' ); ?></h4>
-        <ul class="ww-notify-widget-channels">
+        <ul class="wellweb-notify-widget-channels">
             <?php foreach ( $channels as $ch ) :
-                $is_active = $ch->is_enabled() && $ch->is_configured();
-            ?>
-            <li>
-                <span class="dashicons <?php echo $is_active ? 'dashicons-yes-alt --active' : 'dashicons-minus --inactive'; ?>"></span>
-                <span><?php echo esc_html( $ch->get_label() ); ?></span>
-            </li>
+                $live = $ch->is_enabled() && $ch->is_configured();
+                ?>
+                <li>
+                    <span><?php echo esc_html( $ch->get_label() ); ?></span>
+                    <span class="wellweb-notify-widget-state <?php echo $live ? 'is-on' : ''; ?>">
+                        <?php
+                        if ( $live ) {
+                            esc_html_e( 'Delivering', 'well-web-notify' );
+                        } elseif ( $ch->is_configured() ) {
+                            esc_html_e( 'Switched off', 'well-web-notify' );
+                        } else {
+                            esc_html_e( 'Not connected', 'well-web-notify' );
+                        }
+                        ?>
+                    </span>
+                </li>
             <?php endforeach; ?>
         </ul>
 
-        <!-- Links -->
-        <p class="ww-notify-widget-links">
-            <a href="<?php echo esc_url( admin_url( 'admin.php?page=well-web-notify-settings' ) ); ?>"><?php esc_html_e( 'Settings', 'well-web-notify' ); ?></a>
-            |
-            <a href="<?php echo esc_url( admin_url( 'admin.php?page=well-web-notify-log' ) ); ?>"><?php esc_html_e( 'View Log', 'well-web-notify' ); ?></a>
+        <p>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=' . WELLWEB_NOTIFY_PAGE ) ); ?>#channels"><?php esc_html_e( 'Channels', 'well-web-notify' ); ?></a>
+            &nbsp;·&nbsp;
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=' . WELLWEB_NOTIFY_PAGE_ACTIVITY ) ); ?>"><?php esc_html_e( 'Activity', 'well-web-notify' ); ?></a>
         </p>
     </div>
     <?php

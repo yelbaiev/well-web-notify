@@ -36,20 +36,24 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
             return new WP_Error( 'not_configured', __( 'Telegram is not configured.', 'well-web-notify' ) );
         }
 
-        // Build body from structured fields if available, else use legacy body
-        if ( ! empty( $meta['fields'] ) ) {
-            $lines = array();
-            foreach ( $meta['fields'] as $label => $value ) {
-                $lines[] = "<b>" . esc_html( $label ) . ":</b> " . esc_html( $value );
-            }
-            $formatted_body = implode( "\n", $lines );
-        } else {
-            $formatted_body = $body;
+        $meta = WellWeb_Notify_Message::ensure( $meta, $subject, $body );
+
+        // Headline, then one line saying which site and which form. Telegram
+        // shows the first line of a message in the chat list, so the headline
+        // has to be the thing a person is scanning for.
+        $text    = '<b>' . esc_html( $meta['title'] ) . '</b>';
+        $context = WellWeb_Notify_Message::context_line( $meta );
+        if ( $context !== '' ) {
+            $text .= "\n" . esc_html( $context );
         }
 
-        $text = "<b>" . esc_html( wellweb_notify_site_domain() ) . "</b>\n\n{$formatted_body}";
+        $lines = WellWeb_Notify_Message::field_lines( $meta, '<b>', '</b>', 'esc_html' );
+        if ( $lines !== '' ) {
+            $text .= "\n\n" . $lines;
+        }
 
-        // Contact links (Telegram only supports http/https in <a> tags)
+        // Contact links. Telegram only makes http/https clickable in <a>, so
+        // the number itself is <code> — tap to copy on every client.
         if ( ! empty( $meta['phone'] ) ) {
             $links = wellweb_notify_phone_links( $meta['phone'] );
             $text .= "\n\n"
@@ -59,6 +63,11 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
                 . '<a href="' . esc_attr( $links['telegram'] ) . '">' . "\xE2\x9C\x88\xEF\xB8\x8F" . ' Telegram</a>'
                 . '    '
                 . '<a href="' . esc_attr( $links['viber_web'] ) . '">' . "\xF0\x9F\x93\xB1" . ' Viber</a>';
+        }
+
+        if ( ! empty( $meta['source_url'] ) ) {
+            $text .= "\n\n" . '<a href="' . esc_attr( $meta['source_url'] ) . '">'
+                . esc_html( WellWeb_Notify_Message::source_label( $meta ) ) . ' &rarr;</a>';
         }
 
         $response = wp_remote_post( self::API_URL . $token . '/sendMessage', array(
@@ -75,46 +84,33 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
     }
 
     public function send_test() {
-        return $this->send(
-            __( 'Well Web Notify — Test', 'well-web-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
-            array( 'form_name' => 'Test' )
-        );
+        $meta = wellweb_notify_test_message();
+        return $this->send( $meta['title'], $meta['note'], $meta );
     }
 
     public function render_settings(): void {
-        $token   = $this->get_token();
-        $chat_id = wellweb_notify_get_option( 'telegram-chat-id', '' );
-        ?>
-        <div class="ww-notify-channel-settings" data-channel="telegram">
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Token', 'well-web-notify' ); ?></span>
-                <input type="password"
-                       name="well-web-notify-telegram-token"
-                       value=""
-                       placeholder="<?php echo $token ? esc_attr( wellweb_notify_mask( $token ) ) : '123456:ABC-DEF...'; ?>"
-                       class="regular-text"
-                       autocomplete="off" />
-                <span class="description">
-                    <?php esc_html_e( 'Create a branded bot via @BotFather — set custom name, photo, and description there.', 'well-web-notify' ); ?>
-                </span>
-            </label>
+        $token = $this->get_token();
 
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Chat ID', 'well-web-notify' ); ?></span>
-                <input type="text"
-                       name="well-web-notify-telegram-chat-id"
-                       value="<?php echo esc_attr( $chat_id ); ?>"
-                       placeholder="-1001234567890"
-                       class="regular-text" />
-                <span class="description">
-                    <?php esc_html_e( 'User, group, or channel ID. Send /start to your bot first, then use @userinfobot to find your ID.', 'well-web-notify' ); ?>
-                </span>
-            </label>
+        wellweb_notify_render_fields( array(
+            array(
+                'name'        => 'well-web-notify-telegram-token',
+                'label'       => __( 'Bot token', 'well-web-notify' ),
+                'type'        => 'password',
+                'masked'      => true,
+                'placeholder' => $token ? wellweb_notify_mask( $token ) : '123456:ABC-DEF…',
+                'hint'        => __( 'From @BotFather. Give the bot a name, photo and description there — that is what people see in the chat.', 'well-web-notify' ),
+            ),
+            array(
+                'name'        => 'well-web-notify-telegram-chat-id',
+                'label'       => __( 'Chat ID', 'well-web-notify' ),
+                'type'        => 'text',
+                'value'       => wellweb_notify_get_option( 'telegram-chat-id', '' ),
+                'placeholder' => '-1001234567890',
+                'hint'        => __( 'A person, a group, or a channel. Group IDs start with a minus sign.', 'well-web-notify' ),
+            ),
+        ) );
 
-            <?php $this->render_site_link_info(); ?>
-        </div>
-        <?php
+        $this->render_site_link_info();
     }
 
     public function get_settings(): array {
@@ -135,12 +131,12 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
 
         $site_token = WellWeb_Notify_Site_Verify::get_site_token();
         ?>
-        <div class="ww-notify-site-verify">
-            <span class="ww-field-label"><?php esc_html_e( 'Site Verification', 'well-web-notify' ); ?></span>
-            <p class="description">
-                <?php esc_html_e( 'When adding the bot to a group, send this command in the group to verify ownership:', 'well-web-notify' ); ?>
-            </p>
-            <code class="ww-notify-verify-code">/verify <?php echo esc_html( $site_token ); ?></code>
+        <div class="wellweb-notify-verify">
+            <div class="wpds-fields__hint">
+                <?php esc_html_e( 'Optional. Send this in the group once, so the bot knows which site it belongs to:', 'well-web-notify' ); ?>
+            </div>
+            <code class="wellweb-notify-copy" role="button" tabindex="0"
+                  title="<?php esc_attr_e( 'Click to copy', 'well-web-notify' ); ?>">/verify <?php echo esc_html( $site_token ); ?></code>
         </div>
         <?php
     }

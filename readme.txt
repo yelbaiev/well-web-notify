@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,14 +96,40 @@ Contact us at support@wellweb.marketing to set up Viber or WhatsApp channels.
 
 = Does this work with WooCommerce? =
 
-Yes. Enable WooCommerce order notifications in the settings and choose which order events trigger a notification.
+Yes. Enable WooCommerce order notifications under Sources and choose which order events trigger a notification.
+
+= Where do I find the plugin in the admin? =
+
+Well Web Notify has its own item in the left-hand menu, with three screens: Channels (where notifications go), Sources (what triggers them) and Log (what was sent).
+
+= A Jetpack form is sending only some of its fields =
+
+Fixed in 1.0.6. Jetpack fires several signals per submission carrying different amounts of data, and earlier versions sent whichever arrived first. The plugin now waits for the end of the request and sends the most complete one.
 
 == Screenshots ==
 
-1. Channel settings — configure Telegram, Slack, Discord, and Google Chat
-2. Notification log — filter by channel and status, with pagination
+1. Channels — connect Telegram, Slack, Discord, and Google Chat, and test each one
+2. Delivery log — a seven-day summary, filterable by channel and result
 
 == Changelog ==
+
+= 1.0.6 =
+* Fixed: Jetpack submissions sometimes arrived with only one field. The plugin now collects every signal Jetpack fires for a submission and sends the most complete one, once
+* Fixed: a field is no longer repeated twice in the same message
+* Fixed: `Entry title`, `Entry permalink` and `Feedback id` are no longer listed as form fields — the page the form sits on is a link at the foot of the message instead
+* Changed: field labels are cleaned up — Jetpack's `3_` numbering is removed and Contact Form 7's `your-name` becomes `Your name`
+* Changed: messages say which form they came from, not just which site
+* Changed: Akismet-flagged spam no longer produces a notification
+* Changed: the plugin has its own admin menu with two screens — Settings (Channels, Sources, Message on one page, with an index that follows the scroll) and Activity (the delivery log)
+* Changed: the admin was rebuilt on the same design system as Well Web SEO; every existing link still works
+* Changed: the channels are one list with every switch and button in a column, and each row says what it is doing
+* Fixed: a channel's on/off switch could not be clicked at all
+* Changed: the Sources section leads with the form plugins you have; the rest are one line
+* Changed: the country dialling code moved to Message, and shows a worked example that updates as you type
+* Added: a seven-day summary above the delivery log, and a warning on Settings when notifications have been failing
+* Added: a "Saved" confirmation, and the "More from Well Web" cards are back
+* Fixed: the admin script no longer rewrites the WordPress sidebar menu in the browser
+* Removed: an unused AJAX endpoint that could write the plugin's options
 
 = 1.0.5 =
 * Fixed: Jetpack form submissions now reliably reach all channels on Jetpack 15+ — the integration listens on the surviving `grunion_after_message_sent` hook (Jetpack 15 dropped `grunion_pre_message_sent` and stamps `_feedback_extra_fields` empty on the Forms-block path)

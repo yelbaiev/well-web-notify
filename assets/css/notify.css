@@ -1,0 +1,615 @@
+/* ============================================================
+   Well Web Notify — the components WPDS does not cover.
+
+   Everything here is either specific to this plugin (a channel
+   row, the phone preview, the family cards) or a correction to a
+   WPDS component used in a way the SEO screens do not use it.
+   Nothing here restates a token.
+   ============================================================ */
+
+/* ══════════════════════════════════════════════════════════
+   The screen: a sticky index, and four sections beside it.
+
+   WPDS-v2's `.wpds-settings` already gives the two-column grid
+   and `.wpds-subnav` the sticky column. What is here is what
+   this plugin needs on top: a wider index column (the labels
+   are one word, but the panels below want the room), an
+   `#anchor` offset that clears the admin bar, and the rules
+   that make each section read as one block rather than four
+   panels that happen to be adjacent.
+   ══════════════════════════════════════════════════════════ */
+
+.wpds.wpds-v2 .wellweb-notify-screen { align-items: start; }
+.wpds.wpds-v2 .wellweb-notify-body { min-width: 0; }
+
+/* WordPress's admin bar is 32px and fixed, so an anchor jump lands with the
+   section heading underneath it. 60px = bar + a little air. */
+.wpds.wpds-v2 .wellweb-notify-section { scroll-margin-top: 60px; }
+.wpds.wpds-v2 .wellweb-notify-section + .wellweb-notify-section { margin-top: 16px; }
+.wpds.wpds-v2 .wellweb-notify-section > .wpds-panel__title { margin-bottom: 4px; }
+
+/* The index is a nav, not a list of buttons: quiet until it is the section you
+   are looking at. `.is-active` is set by admin.js from the scroll position. */
+.wpds.wpds-v2 .wpds-subnav { top: 60px; }
+.wpds.wpds-v2 .wpds-subnav a { font-size: 13px; }
+
+/* ─── Page shell ─── */
+
+/* WPDS-v2 declares `.wpds.wpds-v2 .wpds-page` — a DESCENDANT selector, while
+   the class it names is put on the wrapper itself. So it has never matched
+   anything, on either plugin, and every screen rendered at the browser's full
+   width: on a 1564px window the channel list ran to 1540px and put "Send test"
+   a foot away from the name it belongs to.
+   Restated here as a compound selector. Kept local rather than corrected in
+   the vendored copy, which has to stay a verbatim re-vendorable file, and
+   worth reporting upstream. */
+.wpds.wpds-v2.wpds-page { max-width: 1120px; }
+
+/* The strip is this plugin's one "here is what to do next" banner, so it reads
+   as information rather than as an empty panel. */
+.wpds.wpds-v2 .wpds-strip { background: var(--wp-blue-tint); border-color: var(--wp-blue-line); }
+.wpds.wpds-v2 .wpds-strip__title { font-weight: 600; color: var(--wp-ink); }
+
+.wpds.wpds-v2 .wellweb-notify-savebar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0 0;
+  font-size: 12px;
+}
+
+/* The colophon is a footnote: one muted line on the page background, below a
+   hairline, after everything that matters. */
+.wpds.wpds-v2 .wellweb-notify-colophon {
+  margin: 32px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--wp-line);
+  font-size: 12px;
+  color: var(--wp-muted);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Channel list
+
+   A GRID, and that is the whole point. The first version was a
+   flex row in which the controls block and the disclosure
+   chevron both carried `margin-inline-start: auto`; flexbox
+   splits free space between multiple auto margins, so every
+   row's controls landed at a different x depending on the
+   length of its channel name. Fixed tracks cannot do that.
+   ══════════════════════════════════════════════════════════ */
+
+/* Inside a panel now rather than being one, so the list draws its own frame.
+   `overflow: hidden` is what keeps the first and last rows' hover and open
+   tints inside the rounded corners. */
+.wpds.wpds-v2 .wellweb-notify-channels {
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.wpds.wpds-v2 .wellweb-notify-channel + .wellweb-notify-channel {
+  border-top: 1px solid var(--wp-divider);
+}
+
+.wpds.wpds-v2 .wellweb-notify-channel__row {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto 12px;
+  align-items: center;
+  gap: 0 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.wpds.wpds-v2 .wellweb-notify-channel__row:hover { background: var(--wp-sunken); }
+.wpds.wpds-v2 .wellweb-notify-channel.is-open > .wellweb-notify-channel__row {
+  background: var(--wp-sunken);
+  border-bottom: 1px solid var(--wp-divider);
+}
+
+/* Status at a glance. Same states as the subtitle, for the eye that is
+   scanning the column rather than reading it. */
+.wpds.wpds-v2 .wellweb-notify-channel__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--wp-line-strong);
+}
+.wpds.wpds-v2 .wellweb-notify-channel.is-live .wellweb-notify-channel__dot { background: var(--wp-success); }
+.wpds.wpds-v2 .wellweb-notify-channel.is-off  .wellweb-notify-channel__dot { background: var(--wp-warn); }
+
+/* The name is the disclosure control — a real button, so it is reachable and
+   announced. Everything below is undoing the browser's button defaults. */
+.wpds.wpds-v2 .wellweb-notify-channel__disclosure {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.wpds.wpds-v2 .wellweb-notify-channel__disclosure:focus-visible {
+  outline: 2px solid var(--wp-blue);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.wpds.wpds-v2 .wellweb-notify-channel__name {
+  display: block;
+  font-size: 13px; font-weight: 600; color: var(--wp-ink);
+  line-height: 1.4;
+}
+.wpds.wpds-v2 .wellweb-notify-channel__state {
+  display: block;
+  font-size: 12px; color: var(--wp-muted);
+  line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wpds.wpds-v2 .wellweb-notify-channel.is-live .wellweb-notify-channel__state { color: var(--wp-success); }
+.wpds.wpds-v2 .wellweb-notify-channel.is-off  .wellweb-notify-channel__state { color: var(--wp-warn); }
+
+.wpds.wpds-v2 .wellweb-notify-channel__test {
+  display: flex; align-items: center; gap: 10px;
+  justify-content: flex-end;
+}
+/* Reserve the button's column so a long result string pushes leftwards into
+   the empty middle instead of shoving the chevron off the row. */
+.wpds.wpds-v2 .wellweb-notify-channel__test .wpds-btn { flex: none; }
+
+.wpds.wpds-v2 .wellweb-notify-test-result {
+  font-size: 12px;
+  color: var(--wp-muted);
+  text-align: end;
+  max-width: 22ch;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wpds.wpds-v2 .wellweb-notify-test-result.is-ok  { color: var(--wp-success); }
+.wpds.wpds-v2 .wellweb-notify-test-result.is-bad { color: var(--wp-error); }
+
+/* Drawn rather than a dashicon, so it can rotate and inherit colour. */
+.wpds.wpds-v2 .wellweb-notify-channel__chevron {
+  width: 7px; height: 7px;
+  border-right: 1.5px solid var(--wp-line-strong);
+  border-bottom: 1.5px solid var(--wp-line-strong);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+  justify-self: end;
+}
+.wpds.wpds-v2 .wellweb-notify-channel.is-open .wellweb-notify-channel__chevron {
+  transform: rotate(45deg);
+  border-color: var(--wp-ink-2);
+}
+
+/* Shipped open so a script that fails to load still leaves the credentials
+   reachable; admin.js adds .is-open to the ones that should stay that way. */
+.wpds.wpds-v2 .wellweb-notify-channel__body {
+  padding: 20px 16px 20px 38px;   /* aligned to the name column above */
+}
+.wpds.wpds-v2 .wellweb-notify-channel:not(.is-open) > .wellweb-notify-channel__body { display: none; }
+.wpds.wpds-v2 .wellweb-notify-channel__body .wpds-fields__hint { max-width: 58ch; }
+
+/* The controls sit on a clickable row, so the pointer over them has to say
+   "this is the control", not "this opens the row". */
+.wpds.wpds-v2 .wellweb-notify-channel__row input,
+.wpds.wpds-v2 .wellweb-notify-channel__row label { cursor: pointer; }
+
+@media (max-width: 782px) {
+  .wpds.wpds-v2 .wellweb-notify-channel__row {
+    grid-template-columns: 8px minmax(0, 1fr) auto 12px;
+    row-gap: 10px;
+  }
+  .wpds.wpds-v2 .wellweb-notify-channel__test {
+    grid-column: 2 / 5;
+    justify-content: flex-start;
+  }
+  .wpds.wpds-v2 .wellweb-notify-channel__body { padding-left: 16px; }
+}
+
+/* ─── Setup guide ─── */
+
+.wpds.wpds-v2 .wellweb-notify-guide {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wp-divider);
+}
+.wpds.wpds-v2 .wellweb-notify-guide > summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--wp-muted);
+  width: fit-content;
+  list-style: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.wpds.wpds-v2 .wellweb-notify-guide > summary::-webkit-details-marker { display: none; }
+/* Drawn, so it matches the row chevron instead of the browser's triangle. */
+.wpds.wpds-v2 .wellweb-notify-guide > summary::before {
+  content: ""; width: 5px; height: 5px; flex: none;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+.wpds.wpds-v2 .wellweb-notify-guide[open] > summary::before { transform: rotate(45deg); }
+.wpds.wpds-v2 .wellweb-notify-guide > summary:hover { color: var(--wp-ink-2); }
+.wpds.wpds-v2 .wellweb-notify-guide ol {
+  margin: 12px 0 0;
+  padding-inline-start: 20px;
+  color: var(--wp-ink-2);
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 74ch;
+}
+.wpds.wpds-v2 .wellweb-notify-guide code {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-xs);
+  padding: 1px 4px;
+}
+
+/* ─── Telegram: the verification command ─── */
+
+.wpds.wpds-v2 .wellweb-notify-verify {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wp-divider);
+}
+.wpds.wpds-v2 .wellweb-notify-copy {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 5px 10px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  user-select: all;
+}
+.wpds.wpds-v2 .wellweb-notify-copy:hover {
+  border-color: var(--wp-blue);
+  color: var(--wp-blue);
+}
+
+.wpds.wpds-v2 .wellweb-notify-pro-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--wp-muted);
+}
+
+/* ══════════════════════════════════════════════════════════
+   More from Well Web
+
+   Two small tiles, below a hairline, outside the form. They are
+   a pointer to the sibling plugins, not a section of this
+   screen — so they get the quietest treatment that is still a
+   card, and they appear on Channels only. On all three screens
+   a pointer becomes an advert.
+   ══════════════════════════════════════════════════════════ */
+
+.wpds.wpds-v2 .wellweb-notify-family {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--wp-line);
+}
+.wpds.wpds-v2 .wellweb-notify-family__title {
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--wp-muted);
+  margin-bottom: 12px;
+}
+.wpds.wpds-v2 .wellweb-notify-family__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+.wpds.wpds-v2 .wellweb-notify-family__card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+}
+.wpds.wpds-v2 .wellweb-notify-family__head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+}
+.wpds.wpds-v2 .wellweb-notify-family__head .dashicons {
+  width: 16px; height: 16px; font-size: 16px;
+  color: var(--wp-muted);
+}
+.wpds.wpds-v2 .wellweb-notify-family__name {
+  font-size: 13px; font-weight: 600; color: var(--wp-ink);
+}
+.wpds.wpds-v2 .wellweb-notify-family__head .wpds-badge { margin-inline-start: auto; }
+.wpds.wpds-v2 .wellweb-notify-family__blurb {
+  font-size: 12px; color: var(--wp-muted);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.wpds.wpds-v2 .wellweb-notify-family__card a { font-size: 12px; }
+
+/* ══════════════════════════════════════════════════════════
+   Sources
+   ══════════════════════════════════════════════════════════ */
+
+/* A panel whose title row also carries the switch for what the panel
+   describes. The switch belongs on the title's own line, not above or below
+   it, and the intro has to stay clear of it. */
+/* A second thing inside a section — WooCommerce under Sources — needs a
+   heading a level down from the section's own, and a rule above it, or the
+   section reads as two sections that lost their divider. */
+.wpds.wpds-v2 .wellweb-notify-woo {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--wp-divider);
+}
+.wpds.wpds-v2 .wellweb-notify-subhead {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.wpds.wpds-v2 .wellweb-notify-subhead > *:first-child { flex: 1; min-width: 0; }
+.wpds.wpds-v2 .wellweb-notify-subhead .wpds-toggle { flex: none; margin-top: 2px; }
+.wpds.wpds-v2 .wellweb-notify-subhead__title {
+  font-size: 13px; font-weight: 600; color: var(--wp-ink);
+  margin-bottom: 4px;
+}
+.wpds.wpds-v2 .wellweb-notify-subhead__intro {
+  font-size: 12px; color: var(--wp-muted);
+  line-height: 1.55;
+  max-width: 74ch;
+}
+
+.wpds.wpds-v2 .wellweb-notify-sources {
+  margin: 0;
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.wpds.wpds-v2 .wellweb-notify-sources__item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+.wpds.wpds-v2 .wellweb-notify-sources__item + .wellweb-notify-sources__item {
+  border-top: 1px solid var(--wp-divider);
+}
+.wpds.wpds-v2 .wellweb-notify-sources__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--wp-success);
+  flex: none;
+}
+.wpds.wpds-v2 .wellweb-notify-sources__name { font-weight: 600; color: var(--wp-ink); }
+.wpds.wpds-v2 .wellweb-notify-sources__state {
+  margin-inline-start: auto;
+  font-size: 12px; color: var(--wp-success);
+}
+.wpds.wpds-v2 .wellweb-notify-sources__also {
+  margin-top: 12px;
+  font-size: 12px; color: var(--wp-muted);
+  max-width: 74ch;
+}
+
+/* Order events read as one group belonging to the switch above them, so they
+   are indented behind a rule and dimmed while that switch is off. */
+.wpds.wpds-v2 .wellweb-notify-events {
+  border: 0; padding: 0; margin: 0;
+  border-inline-start: 2px solid var(--wp-line);
+  padding-inline-start: 16px;
+  transition: opacity 120ms;
+}
+.wpds.wpds-v2 .wellweb-notify-woo:not(.is-on) .wellweb-notify-events { opacity: .5; }
+.wpds.wpds-v2 .wellweb-notify-events > legend {
+  font-size: 12px; color: var(--wp-muted);
+  padding: 0; margin-bottom: 10px;
+}
+.wpds.wpds-v2 .wellweb-notify-events__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px 24px;
+  max-width: 640px;
+}
+
+/* ─── Phone ─── */
+
+/* The field and the worked example are two columns of the SAME two-row
+   rhythm — a label line, then a value line — so their labels share a baseline
+   and their boxes share a height. Floating the example in a tinted card beside
+   the field looked like an unrelated callout that had drifted up the page. */
+.wpds.wpds-v2 .wellweb-notify-phone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 16px 32px;
+}
+.wpds.wpds-v2 .wellweb-notify-phone__field > label {
+  display: block;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 6px;
+}
+/* The "+" is part of the value the user is being asked for, so it sits in the
+   field rather than in a sentence underneath telling them to leave it out. */
+.wpds.wpds-v2 .wellweb-notify-phone__input {
+  display: flex; align-items: center;
+  width: 120px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-line-strong);
+  border-radius: var(--r-sm);
+  padding-inline-start: 10px;
+  color: var(--wp-muted);
+}
+.wpds.wpds-v2 .wellweb-notify-phone__input:focus-within {
+  border-color: var(--wp-blue);
+  box-shadow: 0 0 0 1px var(--wp-blue);
+}
+.wpds.wpds-v2 .wellweb-notify-phone__input .wpds-input {
+  border: 0; background: transparent; box-shadow: none;
+  padding-inline-start: 2px;
+}
+.wpds.wpds-v2 .wellweb-notify-phone__input .wpds-input:focus { box-shadow: none; }
+.wpds.wpds-v2 .wellweb-notify-phone__field .wpds-fields__hint { margin-top: 6px; max-width: 56ch; }
+
+.wpds.wpds-v2 .wellweb-notify-phone__preview > .wpds-fields__hint {
+  display: block;
+  font-size: 13px; font-weight: 600; color: var(--wp-ink);
+  margin: 0 0 6px;
+}
+.wpds.wpds-v2 .wellweb-notify-phone__pair {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0;
+  height: 32px;                 /* matches the input beside it */
+  padding: 0 12px;
+  background: var(--wp-sunken);
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  color: var(--wp-muted);
+}
+.wpds.wpds-v2 .wellweb-notify-phone__pair code { color: var(--wp-ink-2); }
+.wpds.wpds-v2 .wellweb-notify-phone__out { color: var(--wp-success) !important; font-weight: 600; }
+.wpds.wpds-v2 .wellweb-notify-phone__note { margin-top: 14px; max-width: 74ch; }
+
+/* ══════════════════════════════════════════════════════════
+   Activity
+
+   The counters are three numbers, not three cards. As WPDS
+   stat tiles they were 32px figures in a panel of their own,
+   which gave "0 delivered" the visual weight of the thing the
+   whole screen is about. One line, read as a sentence.
+   ══════════════════════════════════════════════════════════ */
+
+.wpds.wpds-v2 .wellweb-notify-stats {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-bottom: 16px;
+}
+.wpds.wpds-v2 .wellweb-notify-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.wpds.wpds-v2 .wellweb-notify-stat__value {
+  font-size: 20px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+  line-height: 1;
+}
+.wpds.wpds-v2 .wellweb-notify-stat__label { font-size: 13px; color: var(--wp-muted); }
+.wpds.wpds-v2 .wellweb-notify-stat.is-ok  .wellweb-notify-stat__value { color: var(--wp-success); }
+.wpds.wpds-v2 .wellweb-notify-stat.is-bad .wellweb-notify-stat__value { color: var(--wp-error); }
+.wpds.wpds-v2 .wellweb-notify-stats__period {
+  font-size: 12px; color: var(--wp-faint);
+  margin-inline-start: auto;
+}
+
+/* The log table frames itself, the way the channel list does — it is a block
+   inside a section now, not a panel of its own. */
+.wpds.wpds-v2 .wellweb-notify-list {
+  border: 1px solid var(--wp-line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.wpds.wpds-v2 .wellweb-notify-list__toolbar {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--wp-line);
+  background: var(--wp-sunken);
+}
+.wpds.wpds-v2 .wellweb-notify-list__toolbar .wpds-select { width: auto; }
+.wpds.wpds-v2 .wellweb-notify-clear { font-size: 12px; margin-inline-start: 4px; }
+
+.wpds.wpds-v2 .wellweb-notify-list table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.wpds.wpds-v2 .wellweb-notify-list thead th {
+  text-align: start;
+  padding: 9px 8px;
+  color: var(--wp-muted);
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 1px solid var(--wp-divider);
+}
+.wpds.wpds-v2 .wellweb-notify-list thead th:first-child,
+.wpds.wpds-v2 .wellweb-notify-list tbody td:first-child { padding-inline-start: 14px; }
+.wpds.wpds-v2 .wellweb-notify-list thead th:last-child,
+.wpds.wpds-v2 .wellweb-notify-list tbody td:last-child {
+  padding-inline-end: 14px;
+  text-align: end;
+  white-space: nowrap;
+}
+.wpds.wpds-v2 .wellweb-notify-list tbody tr + tr { border-top: 1px solid var(--wp-divider); }
+.wpds.wpds-v2 .wellweb-notify-list tbody td { padding: 11px 8px; vertical-align: middle; color: var(--wp-ink-2); }
+.wpds.wpds-v2 .wellweb-notify-list__primary { font-weight: 600; color: var(--wp-ink); }
+.wpds.wpds-v2 .wellweb-notify-list__secondary { color: var(--wp-muted); font-size: 12px; }
+.wpds.wpds-v2 .wellweb-notify-list td .wellweb-notify-list__secondary { display: block; margin-top: 3px; }
+
+.wpds.wpds-v2 .wellweb-notify-noresults {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--wp-muted);
+}
+
+.wpds.wpds-v2 .wellweb-notify-list__foot {
+  display: flex; gap: 4px; align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--wp-line);
+}
+.wpds.wpds-v2 .wellweb-notify-list__foot .page-numbers {
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  color: var(--wp-ink-2);
+  text-decoration: none;
+  font-size: 12px;
+}
+.wpds.wpds-v2 .wellweb-notify-list__foot .page-numbers:hover { background: var(--wp-sunken); }
+.wpds.wpds-v2 .wellweb-notify-list__foot .page-numbers.current {
+  background: var(--wp-ink);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Dashboard widget
+
+   Deliberately outside a `.wpds` wrapper: the widget is core's
+   surface, and dropping a design-system container into it makes
+   it the loudest box on the dashboard. Only the tokens are
+   borrowed.
+   ══════════════════════════════════════════════════════════ */
+
+.wellweb-notify-widget-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.wellweb-notify-widget-stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink, #1d2327);
+}
+.wellweb-notify-widget-stat.is-bad .wellweb-notify-widget-stat-value {
+  color: var(--wp-error, #cc1818);
+}
+.wellweb-notify-widget-stat-label {
+  font-size: 12px;
+  color: var(--wp-muted, #646970);
+}
+.wellweb-notify-widget-channels {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.wellweb-notify-widget-channels li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  margin: 0;
+}
+.wellweb-notify-widget-channels .wellweb-notify-widget-state {
+  margin-inline-start: auto;
+  font-size: 12px;
+  color: var(--wp-muted, #646970);
+}
+.wellweb-notify-widget-channels .is-on { color: var(--wp-success, #008030); }

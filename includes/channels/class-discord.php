@@ -33,37 +33,33 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
             return new WP_Error( 'not_configured', __( 'Discord is not configured.', 'well-web-notify' ) );
         }
 
-        // Build body from structured fields if available
-        if ( ! empty( $meta['fields'] ) ) {
-            $lines = array();
-            foreach ( $meta['fields'] as $label => $value ) {
-                $lines[] = "**{$label}:** {$value}";
-            }
-            $formatted_body = implode( "\n", $lines );
-        } else {
-            $formatted_body = $body;
-        }
+        $meta = WellWeb_Notify_Message::ensure( $meta, $subject, $body );
 
-        $embeds = array(
-            array(
-                'title'       => wellweb_notify_site_domain(),
-                'description' => $formatted_body,
-                'color'       => 3447003, // Blue
-                'timestamp'   => gmdate( 'c' ),
-            ),
+        $lines = WellWeb_Notify_Message::field_lines( $meta, '**', '**', array( __CLASS__, 'escape' ) );
+
+        $embed = array(
+            'title'       => $meta['title'],
+            'description' => $lines,
+            'color'       => 3447003, // Blue
+            'timestamp'   => gmdate( 'c' ),
+            'footer'      => array( 'text' => WellWeb_Notify_Message::context_line( $meta ) ),
         );
 
-        // Contact links (Discord only supports https:// clickable links)
+        if ( ! empty( $meta['source_url'] ) ) {
+            $embed['url'] = $meta['source_url'];
+        }
+
         if ( ! empty( $meta['phone'] ) ) {
-            $links = wellweb_notify_phone_links( $meta['phone'] );
-            $embeds[0]['fields'] = array(
+            $links            = wellweb_notify_phone_links( $meta['phone'] );
+            $embed['fields']  = array(
                 array(
-                    'name'   => "\xE2\x98\x8E\xEF\xB8\x8F Contact",
+                    'name'   => "\xE2\x98\x8E\xEF\xB8\x8F " . __( 'Contact', 'well-web-notify' ),
                     'value'  => sprintf(
-                        "`%s`\n\n[WhatsApp](%s)  |  [Telegram](%s)",
+                        "`%s`\n[WhatsApp](%s)  ·  [Telegram](%s)  ·  [Viber](%s)",
                         $meta['phone'],
                         $links['whatsapp'],
-                        $links['telegram']
+                        $links['telegram'],
+                        $links['viber_web']
                     ),
                     'inline' => false,
                 ),
@@ -72,7 +68,7 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
 
         $payload = array(
             'content' => null,
-            'embeds'  => $embeds,
+            'embeds'  => array( $embed ),
         );
 
         // Branded bot name & avatar override
@@ -95,54 +91,48 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
         return $this->handle_response( $response );
     }
 
+    /**
+     * Neutralise Discord markdown in submitted text, so a visitor typing
+     * `**` or a backtick cannot restyle the message they arrive in.
+     */
+    public static function escape( string $text ): string {
+        return preg_replace( '/([\\\\*_`~|>])/', '\\\\$1', $text );
+    }
+
     public function send_test() {
-        return $this->send(
-            __( 'Well Web Notify — Test', 'well-web-notify' ),
-            __( 'This is a test message from Well Web Notify plugin.', 'well-web-notify' ),
-            array( 'form_name' => 'Test' )
-        );
+        $meta = wellweb_notify_test_message();
+        return $this->send( $meta['title'], $meta['note'], $meta );
     }
 
     public function render_settings(): void {
-        $webhook    = $this->get_webhook();
-        $bot_name   = wellweb_notify_get_option( 'discord-bot-name', '' );
-        $avatar_url = wellweb_notify_get_option( 'discord-avatar-url', '' );
-        ?>
-        <div class="ww-notify-channel-settings" data-channel="discord">
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Webhook URL', 'well-web-notify' ); ?></span>
-                <input type="password"
-                       name="well-web-notify-discord-webhook"
-                       value=""
-                       placeholder="<?php echo $webhook ? esc_attr( wellweb_notify_mask( $webhook ) ) : 'https://discord.com/api/webhooks/...'; ?>"
-                       class="regular-text"
-                       autocomplete="off" />
-                <span class="description">
-                    <?php esc_html_e( 'Server Settings → Integrations → Webhooks → New Webhook.', 'well-web-notify' ); ?>
-                </span>
-            </label>
+        $webhook = $this->get_webhook();
 
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Display Name', 'well-web-notify' ); ?></span>
-                <input type="text"
-                       name="well-web-notify-discord-bot-name"
-                       value="<?php echo esc_attr( $bot_name ); ?>"
-                       placeholder="Well Web Notify"
-                       class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default name. Leave empty to use webhook settings.', 'well-web-notify' ); ?></span>
-            </label>
-
-            <label class="ww-field ww-field-labeled">
-                <span class="ww-field-label"><?php esc_html_e( 'Bot Avatar URL', 'well-web-notify' ); ?></span>
-                <input type="url"
-                       name="well-web-notify-discord-avatar-url"
-                       value="<?php echo esc_attr( $avatar_url ); ?>"
-                       placeholder="https://example.com/avatar.png"
-                       class="regular-text" />
-                <span class="description"><?php esc_html_e( 'Overrides the webhook default avatar. Must be a public URL.', 'well-web-notify' ); ?></span>
-            </label>
-        </div>
-        <?php
+        wellweb_notify_render_fields( array(
+            array(
+                'name'        => 'well-web-notify-discord-webhook',
+                'label'       => __( 'Webhook URL', 'well-web-notify' ),
+                'type'        => 'password',
+                'masked'      => true,
+                'placeholder' => $webhook ? wellweb_notify_mask( $webhook ) : 'https://discord.com/api/webhooks/…',
+                'hint'        => __( 'Server Settings → Integrations → Webhooks. The webhook decides the channel.', 'well-web-notify' ),
+            ),
+            array(
+                'name'        => 'well-web-notify-discord-bot-name',
+                'label'       => __( 'Display name', 'well-web-notify' ),
+                'type'        => 'text',
+                'value'       => wellweb_notify_get_option( 'discord-bot-name', '' ),
+                'placeholder' => 'Well Web Notify',
+                'hint'        => __( 'Optional. Leave empty to use the webhook\'s own name.', 'well-web-notify' ),
+            ),
+            array(
+                'name'        => 'well-web-notify-discord-avatar-url',
+                'label'       => __( 'Avatar URL', 'well-web-notify' ),
+                'type'        => 'url',
+                'value'       => wellweb_notify_get_option( 'discord-avatar-url', '' ),
+                'placeholder' => 'https://example.com/avatar.png',
+                'hint'        => __( 'Optional. Must be a publicly reachable image.', 'well-web-notify' ),
+            ),
+        ) );
     }
 
     public function get_settings(): array {

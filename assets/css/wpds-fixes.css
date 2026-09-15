@@ -1,0 +1,331 @@
+/* ============================================================
+   WPDS corrections — the generic half of
+   wellweb-seo/assets/css/wpds-fixes.css.
+
+   VENDORED. Loads third, after wpds.css and wpds-v2.css, for the
+   reason the source file gives: a correction written at the same
+   specificity as the v2 rule it corrects has to come after it.
+
+   The SEO-only sections (that plugin's legacy containers, its 404
+   screen, its post-editor metabox, its tool map) are not copied.
+   Notify's own rules live in notify.css.
+   ============================================================ */
+
+/* ─── A top-level card gets panel geometry ─────────────────
+   The v2 screens were converted to `.wpds-panel`; Integrations,
+   Product feeds and GA4 were not, and still render `.wpds-card`
+   as their outermost container. Side by side the two read as
+   different products: a panel has a plain 14px title on white
+   with 20/24 padding, a card has a bold title on a grey bar
+   above a hairline, with 14/18 padding.
+
+   So a card on a v2 page is given the panel's measurements and
+   its plain title. Both classes survive — 43 uses across 15
+   files, and every one of them is a heading plus a body, which
+   is the right structure either way. Only the frame was dated.
+
+   Ordering note: this matches EVERY card, including nested ones.
+   The nested rule below is more specific and strips the frame
+   again, so the two compose rather than fight. */
+
+.wpds.wpds-v2 .wpds-card {
+  border-radius: 8px;
+  box-shadow: none;   /* panels are flat; the border does the separating */
+}
+.wpds.wpds-v2 .wpds-card__head {
+  padding: 20px 24px 0;
+  border-bottom: 0;
+  background: none;
+  align-items: baseline;
+}
+.wpds.wpds-v2 .wpds-card__title { font-weight: 600; font-size: 14px; }
+.wpds.wpds-v2 .wpds-card__body { padding: 12px 24px 20px; }
+.wpds.wpds-v2 .wpds-card__foot {
+  padding: var(--sp-3) 24px;
+  background: none;
+}
+
+/* A card with no head starts at the body, so the body supplies
+   the top padding a head would have given it. */
+.wpds.wpds-v2 .wpds-card > .wpds-card__body:first-child { padding-top: 20px; }
+
+/* ─── A card inside a v2 panel loses its own frame ──────────
+   `.wpds-card` is from the pre-v2 design, where it WAS the
+   frame. There are 43 of them across 15 files, and the ones
+   that now sit inside a `.wpds-panel` draw a second border, a
+   second grey header bar and a second shadow inside the
+   panel's — so a settings section reads as a box in a box with
+   two titles, and the eye cannot tell which level owns what.
+
+   De-chromed rather than rewritten because the markup itself is
+   fine: a heading, a sub-line and a body is exactly the right
+   structure. It is only the frame that is now drawn twice. */
+
+.wpds.wpds-v2 .wpds-panel .wpds-card {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.wpds.wpds-v2 .wpds-panel .wpds-card + .wpds-card {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--wp-line);   /* a rule between siblings, not a box around each */
+}
+.wpds.wpds-v2 .wpds-panel .wpds-card__head {
+  padding: 0 0 var(--sp-2);
+  border-bottom: 0;
+  background: none;
+}
+.wpds.wpds-v2 .wpds-panel .wpds-card__body { padding: 0; }
+.wpds.wpds-v2 .wpds-panel .wpds-card__foot {
+  padding: var(--sp-3) 0 0;
+  border-top: 0;
+  background: none;
+}
+
+/* The panel already has a 14px/600 title. A nested card title at
+   the same weight competes with it, so it steps down a level —
+   still a heading, visibly subordinate. */
+.wpds.wpds-v2 .wpds-panel .wpds-card__title {
+  font-size: 13px;
+  color: var(--wp-ink-2);
+}
+
+/* Dashicons in a nested card head give the section a second
+   visual anchor a few pixels from the panel's title, and none of
+   them carries information the title does not. Hidden here only
+   — buttons keep their icons, where the icon is the affordance. */
+.wpds.wpds-v2 .wpds-panel .wpds-card__head .dashicons {
+  display: none;
+}
+
+/* ─── Destructive row actions are links, not buttons ────────
+   `.button-link-delete` is WordPress's own class for exactly
+   this, and nothing in this plugin ever defined it — so a
+   `<button class="button-link-delete">` fell all the way through
+   to the browser's NATIVE control styling: `2px outset` black
+   border, grey face, square corners. On the 404 log that put a
+   raised 1990s push-button in red text on every row, and made
+   Delete the loudest thing in a table whose point is the paths.
+
+   A red text link, which is what the class means everywhere else
+   in WordPress. */
+
+.wpds .button-link-delete,
+.wpds button.button-link-delete {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--wp-error);
+  font-size: 13px;
+  line-height: inherit;
+  cursor: pointer;
+}
+.wpds .button-link-delete:hover,
+.wpds button.button-link-delete:hover {
+  color: var(--wp-error);
+  text-decoration: underline;
+}
+
+/* ─── Segmented control: the count belongs in the label ─────
+   "Needs work" tells you nothing about whether to click it. */
+
+.wpds.wpds-v2 .wpds-seg__count {
+  margin-inline-start: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--wp-sunken);
+  color: var(--wp-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.wpds.wpds-v2 .wpds-seg__btn[aria-pressed="true"] .wpds-seg__count {
+  background: var(--wp-surface);
+  color: var(--wp-ink-2);
+}
+
+/* ─── Home: the checklist is a sequence, not a grid ─────────
+   `auto-fit, minmax(220px, 1fr)` put all five setup steps in one
+   row at any normal admin width. Three things went wrong at
+   once: each tile was too narrow for its own hint text so the
+   tiles ended up different heights; a left-to-right row implies
+   an order the eye does not actually follow across five equal
+   boxes; and `is-next` — the whole point of the panel, the one
+   step you should do now — landed wherever the grid put it.
+
+   A vertical list restores all three. You read down, the next
+   step is where you look first, and one full-width row per step
+   has room for its hint. Costs about 100px of height on a panel
+   that only exists until setup is finished. */
+
+.wpds.wpds-v2 .wpds-steps {
+  display: block;
+}
+.wpds.wpds-v2 .wpds-step {
+  margin-bottom: var(--sp-2);
+  align-items: center;
+}
+.wpds.wpds-v2 .wpds-step:last-child { margin-bottom: 0; }
+
+/* The one step to do now earns the accent; a finished step is
+   struck through the mark, not the label — a line through the
+   words makes them harder to read for no gain. */
+.wpds.wpds-v2 .wpds-step.is-next {
+  border-color: var(--wp-blue);
+  box-shadow: inset 3px 0 0 0 var(--wp-blue);
+}
+
+/* ─── Home: Health stats need a boundary ───────────────────
+   Four figures in a row with nothing between them read as one
+   run of numbers — "72 148 3 2" — and the labels above them do
+   not separate strongly enough to undo that. A hairline between
+   columns is the least ink that fixes it. */
+
+.wpds.wpds-v2 .wpds-stats { gap: 0; }
+.wpds.wpds-v2 .wpds-stats > .wpds-stat {
+  padding: 0 var(--sp-5);
+  border-inline-start: 1px solid var(--wp-line);
+}
+.wpds.wpds-v2 .wpds-stats > .wpds-stat:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+/* Wrapped rows would otherwise show a stray leading rule, and
+   `:first-child` cannot see where a row begins. */
+@media (max-width: 782px) {
+  .wpds.wpds-v2 .wpds-stats > .wpds-stat {
+    padding: var(--sp-3) 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--wp-line);
+  }
+  .wpds.wpds-v2 .wpds-stats > .wpds-stat:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+/* ─── Equal-width columns of panels ─────────────────────────
+   The layout Traffic needed and did not have, so it borrowed
+   `.wpds-fields` — the label/control grid — and overrode its
+   columns inline. That inherited `align-items: start`, which
+   sizes each panel to its own content, and no amount of
+   `height: 100%` fixes it: a grid item aligned to `start` sits in
+   a row as tall as itself, so 100% of that is its own height.
+
+   `stretch` is the default and is stated anyway, because the
+   whole point of this class is the property that was wrong. */
+
+.wpds.wpds-v2 .wpds-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: stretch;
+  gap: var(--sp-4);
+}
+
+/* The margin is the actual reason the two panels on Traffic were
+   different heights, and it is not obvious: `.wpds-panel +
+   .wpds-panel` adds a 16px top margin to separate VERTICALLY
+   stacked panels, and a second panel in a grid row is still an
+   adjacent sibling. So it stretched to the row height and then
+   lost 16px to its own margin — 141.5 becomes 125.5 — while also
+   starting 16px lower than its neighbour.
+
+   `align-items: stretch` cannot save it, because stretch fills
+   the area minus margins; this had to be the margin. Zeroing the
+   top margin is also simply correct: `gap` already does the
+   separating here, in both axes. */
+.wpds.wpds-v2 .wpds-cols > * { min-width: 0; }
+
+/* Matched as `.wpds-panel + .wpds-panel`, not `> *`, because the
+   rule being overridden is `.wpds.wpds-v2 .wpds-panel +
+   .wpds-panel` — four class selectors. A `> *` form is three
+   classes and a universal, which loses, and loses silently: the
+   panels simply stay misaligned with a correct-looking rule
+   sitting right there. */
+.wpds.wpds-v2 .wpds-cols > .wpds-panel,
+.wpds.wpds-v2 .wpds-cols > .wpds-panel + .wpds-panel,
+.wpds.wpds-v2 .wpds-cols > .wpds-card,
+.wpds.wpds-v2 .wpds-cols > .wpds-card + .wpds-card {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+
+/* ─── A long page description wraps at a readable measure ───
+   `wpds-pagehead__meta` was designed for a short trailing fact —
+   "wellweb-redesign.example.com · not scanned yet" — sitting on
+   the title's baseline. Integrations and Product feeds put a
+   two-sentence explanation in it, which wrapped to the full
+   1240px and gave the screen a 150-character line length to open
+   with. Capped at a normal prose measure; short metas are
+   unaffected, since they never reach the cap. */
+
+.wpds.wpds-v2 .wpds-pagehead__meta { max-width: 88ch; }
+
+/* ─── Getting back from a screen with no sidebar row ────────
+   Six screens are reachable only from their section's "More
+   tools" list. They are real pages with their own URL, and until
+   now arriving at one told you nothing: the heading named the
+   SECTION rather than the screen, the sidebar highlighted a
+   different plugin's menu, and there was no link back. The only
+   way out was the browser's Back button.
+
+   The link sits above the title rather than beside it, so the
+   heading still reads as the heading. */
+
+.wpds.wpds-v2 .wpds-pagehead__back {
+  margin-bottom: var(--sp-1);
+}
+.wpds.wpds-v2 .wpds-backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 13px;
+  color: var(--wp-muted);
+  text-decoration: none;
+}
+.wpds.wpds-v2 .wpds-backlink:hover {
+  color: var(--wp-blue);
+  text-decoration: underline;
+}
+
+/* ─── Settings-API output inside a panel ────────────────────
+   `do_settings_sections()` emits a flat run of `<h2>`, `<p>` and
+   `<table class="form-table">` with no wrapper per section — so
+   once the run is inside a panel, the headings are the only thing
+   marking where one section ends and the next begins. They get a
+   rule above and the panel title's weight; the first one does not,
+   because a divider at the top of a box is a line against a
+   border. */
+
+.wpds.wpds-v2 .wpds-panel > h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: var(--sp-5) 0 var(--sp-2);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--wp-line);
+}
+.wpds.wpds-v2 .wpds-panel > h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+/* An empty anchor target — `<a id="section-sitemap"></a>` — counts
+   as a first child and would push the first heading into the
+   divider treatment. */
+.wpds.wpds-v2 .wpds-panel > a[id]:empty:first-child + h2 {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.wpds.wpds-v2 .wpds-panel > p {
+  color: var(--wp-muted);
+  margin-bottom: var(--sp-3);
+  max-width: 68ch;
+}
+

@@ -14,10 +14,18 @@
 *.md
 !readme.txt
 
+# Docs live in the repo, not in the plugin. `*.md` already drops the files;
+# naming the directory stops empty docs/, docs/plans/ and docs/user-guide/
+# folders (and any future screenshots in them) from riding along.
+docs/
+
 # IDE and editor files
 .idea/
 .vscode/
 *.sublime-*
+
+# Tooling scratch
+.playwright-mcp/
 
 # Testing
 tests/
