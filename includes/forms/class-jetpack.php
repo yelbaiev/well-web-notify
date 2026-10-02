@@ -249,9 +249,14 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
                 continue;
             }
 
+            $fields = $offer['fields'];
+            if ( $offer['rank'] < self::RANK_PRE_SENT ) {
+                $fields = $this->read_complete_values( (int) $post_id ) ?: $fields;
+            }
+
             WellWeb_Notify_Form_Manager::handle_submission(
                 $post instanceof WP_Post ? $this->resolve_form_name( $post ) : __( 'Jetpack Form', 'well-web-notify' ),
-                $offer['fields'],
+                $fields,
                 array(
                     'source_url' => $post instanceof WP_Post ? $this->resolve_source_url( $post ) : '',
                 )
@@ -307,6 +312,34 @@ class WellWeb_Notify_Jetpack implements WellWeb_Notify_Form {
         $parent_url = get_post_meta( $post->ID, '_feedback_parent_url', true );
 
         return is_string( $parent_url ) ? esc_url_raw( $parent_url ) : '';
+    }
+
+    /**
+     * Every field of a stored submission, read back through Jetpack itself.
+     *
+     * Only needed when neither hook with the full payload fired and the best
+     * offer is the meta write — which on Jetpack 15+ is the extra fields only,
+     * i.e. a phone number with no name. The feedback post holds the whole
+     * submission, and `Feedback::get()->get_all_values()` is what Jetpack's
+     * own hooks are built from, so it is the same field set they would carry.
+     */
+    private function read_complete_values( int $post_id ): array {
+        $class = 'Automattic\Jetpack\Forms\ContactForm\Feedback';
+        if ( ! $post_id || ! class_exists( $class ) || ! method_exists( $class, 'get' ) ) {
+            return array();
+        }
+
+        try {
+            $feedback = $class::get( $post_id );
+            if ( ! $feedback || ! method_exists( $feedback, 'get_all_values' ) ) {
+                return array();
+            }
+            $values = $feedback->get_all_values();
+        } catch ( \Throwable $e ) {
+            return array();
+        }
+
+        return is_array( $values ) ? $values : array();
     }
 
     private function read_field_meta( int $post_id ): array {

@@ -92,6 +92,13 @@ still runs after Jetpack's redirect-and-exit because WordPress registers it via
 `register_shutdown_function`. Spam is skipped at that point, because by then
 the feedback post has its final status.
 
+If the winning offer is only a meta or transition one (rank below pre-sent),
+`dispatch_pending()` reads the submission back through Jetpack's own
+`Feedback::get( $post_id )->get_all_values()` — the same source its hooks are
+built from — so a missed hook cannot produce a phone-only message. The call is
+guarded by `class_exists`/`method_exists` and a `Throwable` catch; on any
+failure the meta payload is sent as before.
+
 `$extra_values` is deliberately never merged into `$all_values`.
 
 ## Admin

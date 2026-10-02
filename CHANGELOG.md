@@ -1,5 +1,9 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.7
+
+- Fixed: a Jetpack submission can no longer arrive with only the phone number and no name. If the complete field set was not handed over during the request, the plugin now reads it back from Jetpack's saved entry before sending.
+
 ## Version 1.0.6
 
 - Fixed: Jetpack form submissions arrived with all the fields sometimes and one field other times. Jetpack fires four signals per submission carrying different data, and the plugin let whichever arrived first send. It now collects them all and sends the most complete one, once, at the end of the request.

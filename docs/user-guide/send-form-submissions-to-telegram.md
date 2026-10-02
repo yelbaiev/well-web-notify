@@ -70,3 +70,9 @@ a group, and that person has not started a conversation with the bot. Send
 check your form plugin is listed as *Watching*. If it is, open **Well Web
 Notify → Activity** — a failed send is recorded there with the reason the chat
 service gave.
+
+**Messages arrive with only a phone number — no name, no page.** This was a
+Jetpack Forms issue in Well Web Notify 1.0.5 and earlier. Check **Plugins** and
+update to 1.0.7 or later; new submissions will then carry every field and a
+link to the page the form is on. A message showing a field called `3 Телефон`
+is the giveaway that it was sent by an old version.

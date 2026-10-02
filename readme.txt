@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,7 +104,7 @@ Well Web Notify has its own item in the left-hand menu, with three screens: Chan
 
 = A Jetpack form is sending only some of its fields =
 
-Fixed in 1.0.6. Jetpack fires several signals per submission carrying different amounts of data, and earlier versions sent whichever arrived first. The plugin now waits for the end of the request and sends the most complete one.
+Fixed in 1.0.6 and hardened in 1.0.7. Jetpack fires several signals per submission carrying different amounts of data, and earlier versions sent whichever arrived first — typically a message with only the phone number and no name or page. The plugin now waits for the end of the request and sends the most complete one, and if only the partial one arrived it reads the full submission back from Jetpack's saved entry.
 
 == Screenshots ==
 
@@ -112,6 +112,9 @@ Fixed in 1.0.6. Jetpack fires several signals per submission carrying different 
 2. Delivery log — a seven-day summary, filterable by channel and result
 
 == Changelog ==
+
+= 1.0.7 =
+* Fixed: a Jetpack submission can no longer arrive in Telegram (or any channel) with only the phone number. If the complete field set was not handed over during the request, the plugin reads it back from Jetpack's saved entry before sending
 
 = 1.0.6 =
 * Fixed: Jetpack submissions sometimes arrived with only one field. The plugin now collects every signal Jetpack fires for a submission and sends the most complete one, once
