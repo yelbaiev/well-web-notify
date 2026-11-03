@@ -71,6 +71,12 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
             'embeds'  => array( $embed ),
         );
 
+        // SUPPRESS_NOTIFICATIONS: delivered without a ping, like Telegram's
+        // disable_notification. Used for the weekly summary.
+        if ( ! empty( $meta['silent'] ) ) {
+            $payload['flags'] = 4096;
+        }
+
         // Branded bot name & avatar override
         $bot_name = wellweb_notify_get_option( 'discord-bot-name', '' );
         if ( ! empty( $bot_name ) ) {
@@ -146,6 +152,33 @@ class WellWeb_Notify_Discord implements WellWeb_Notify_Channel {
 
     private function get_webhook(): string {
         return wellweb_notify_get_encrypted( 'discord-webhook' );
+    }
+
+    /**
+     * Prove the webhook still exists, without posting to it.
+     *
+     * A GET on a webhook URL returns the webhook's own details and sends
+     * nothing; a deleted webhook answers 404 and a bad token 401.
+     *
+     * @return true|WP_Error
+     */
+    public function check_connection() {
+        $webhook = $this->get_webhook();
+        if ( empty( $webhook ) ) {
+            return new WP_Error( 'not_configured', __( 'Discord is not configured.', 'well-web-notify' ) );
+        }
+
+        $response = wp_remote_get( $webhook, array( 'timeout' => 15 ) );
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( $code === 200 ) {
+            return true;
+        }
+
+        return new WP_Error( 'discord_error', "HTTP {$code}: " . wp_remote_retrieve_body( $response ) );
     }
 
     private function handle_response( $response ) {

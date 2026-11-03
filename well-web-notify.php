@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Well Web Notify
  * Description:  Multi-channel form & order notifications — Telegram, Slack, Discord, Google Chat
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: Well Web Marketing
  * Author URI: https://wellweb.marketing/
  * Plugin URI: https://wellweb.marketing/notify
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'WELLWEB_NOTIFY_PLUGIN_FILE', __FILE__ );
-define( 'WELLWEB_NOTIFY_VERSION', '1.0.7' );
+define( 'WELLWEB_NOTIFY_VERSION', '1.0.8' );
 define( 'WELLWEB_NOTIFY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WELLWEB_NOTIFY_URL', plugin_dir_url( __FILE__ ) );
 
@@ -65,6 +65,7 @@ include WELLWEB_NOTIFY_DIR . 'includes/admin-screen.php';
 include WELLWEB_NOTIFY_DIR . 'includes/section-channels.php';
 include WELLWEB_NOTIFY_DIR . 'includes/section-sources.php';
 include WELLWEB_NOTIFY_DIR . 'includes/section-message.php';
+include WELLWEB_NOTIFY_DIR . 'includes/section-monitoring.php';
 include WELLWEB_NOTIFY_DIR . 'includes/screen-activity.php';
 
 // Dashboard widget
@@ -73,7 +74,7 @@ include WELLWEB_NOTIFY_DIR . 'includes/dashboard-widget.php';
 // Site Health integration
 include WELLWEB_NOTIFY_DIR . 'includes/site-health.php';
 
-// Daily bot health check
+// Daily silent connection check and weekly summary
 include WELLWEB_NOTIFY_DIR . 'includes/class-health-check.php';
 
 // WordPress.org review prompt

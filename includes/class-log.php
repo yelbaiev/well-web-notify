@@ -128,6 +128,42 @@ class WellWeb_Notify_Log {
     }
 
     /**
+     * Rows the plugin writes about itself rather than about a submission.
+     * Excluded wherever "real deliveries" are counted.
+     */
+    const HOUSEKEEPING = array( 'Test', 'Health Check', 'Weekly summary' );
+
+    /**
+     * Successful deliveries of real submissions and orders, per channel, since
+     * N seconds ago.
+     *
+     * @return array<string,int> channel slug => count
+     */
+    public static function count_deliveries( int $seconds ): array {
+        global $wpdb;
+
+        $table = $wpdb->prefix . self::TABLE_NAME;
+        $since = gmdate( 'Y-m-d H:i:s', time() - $seconds );
+
+        $placeholders = implode( ', ', array_fill( 0, count( self::HOUSEKEEPING ), '%s' ) );
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- custom log table; $placeholders is a fixed list of %s
+        $rows = $wpdb->get_results( $wpdb->prepare(
+            "SELECT channel, COUNT(*) AS cnt FROM {$table}
+             WHERE status = 'success' AND created_at >= %s AND form_name NOT IN ({$placeholders})
+             GROUP BY channel",
+            array_merge( array( $since ), self::HOUSEKEEPING )
+        ) );
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+        $counts = array();
+        foreach ( (array) $rows as $row ) {
+            $counts[ $row->channel ] = (int) $row->cnt;
+        }
+        return $counts;
+    }
+
+    /**
      * Clean up old entries (keeps last 30 days)
      */
     public static function cleanup( int $days = 30 ) {

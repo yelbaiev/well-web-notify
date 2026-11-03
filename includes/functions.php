@@ -408,6 +408,163 @@ function wellweb_notify_site_domain(): string {
     return preg_replace( '/^www\./i', '', $host );
 }
 
+// ─── Production or staging ───────────────────────────────────
+
+/**
+ * A host as the plugin compares it: lowercased, no "www.", no port.
+ */
+function wellweb_notify_normalize_host( string $host ): string {
+    $host = strtolower( trim( $host ) );
+    $host = preg_replace( '#^[a-z]+://#', '', $host );
+    $host = preg_replace( '#[/:?].*$#', '', $host );
+    return preg_replace( '/^www\./', '', $host );
+}
+
+/**
+ * Does this hostname look like a staging or development copy?
+ *
+ * Only consulted while no production domain is stored, to decide whether this
+ * site may claim the role. A host that matches is never auto-claimed.
+ */
+function wellweb_notify_host_looks_like_staging( string $host ): bool {
+    $host = wellweb_notify_normalize_host( $host );
+
+    if ( preg_match( '/^(staging|stage|stg|dev|develop|development|test|testing|qa|uat|preview|sandbox)[\.\-0-9]/', $host ) ) {
+        return true;
+    }
+
+    $suffixes = array(
+        '.local', '.test', '.localhost', '.invalid', '.example', 'localhost',
+        '.mystagingwebsite.com', // Pressable
+        '.wpengine.com', '.wpenginepowered.com',
+        '.kinsta.cloud', '.kinsta.com',
+        '.flywheelstaging.com', '.flywheelsites.com',
+        '.cloudwaysapps.com',
+        '.wpcomstaging.com',
+        '.instawp.xyz', '.tastewp.com',
+    );
+    foreach ( $suffixes as $suffix ) {
+        if ( substr( $host, -strlen( $suffix ) ) === $suffix ) {
+            return true;
+        }
+    }
+
+    return (bool) preg_match( '/(^|\.)(staging|stage|dev)\./', $host );
+}
+
+/**
+ * The domain recorded as this site's live one, or '' if none is yet.
+ */
+function wellweb_notify_production_domain(): string {
+    return wellweb_notify_normalize_host( (string) wellweb_notify_get_option( 'production-domain', '' ) );
+}
+
+/**
+ * Is this the live site, rather than a staging or development copy?
+ *
+ * Two signals, both of which survive a production database being copied onto
+ * staging — which is how most staging sites are refreshed, and why a stored
+ * "this is production" checkbox would be wrong the day after the first sync:
+ *
+ *  1. `wp_get_environment_type()` — set in wp-config.php or by the host, never
+ *     in the database. Anything other than `production` is not production.
+ *  2. The stored production domain, compared against the domain this request
+ *     is actually running on. A copied database carries the live domain with
+ *     it, so on staging the two do not match.
+ *
+ * With no production domain stored yet, a host that looks like staging is
+ * treated as staging.
+ */
+function wellweb_notify_is_production(): bool {
+    $is_production = true;
+
+    if ( function_exists( 'wp_get_environment_type' ) && wp_get_environment_type() !== 'production' ) {
+        $is_production = false;
+    } else {
+        $current    = wellweb_notify_normalize_host( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+        $production = wellweb_notify_production_domain();
+
+        if ( $production !== '' ) {
+            $is_production = ( $current === $production );
+        } else {
+            $is_production = ! wellweb_notify_host_looks_like_staging( $current );
+        }
+    }
+
+    /**
+     * Last word on whether this site counts as production.
+     *
+     * @param bool $is_production
+     */
+    return (bool) apply_filters( 'wellweb_notify_is_production', $is_production );
+}
+
+/**
+ * Why this site is, or is not, treated as production — for the admin screen.
+ *
+ * @return array{ production: bool, current: string, recorded: string, type: string, reason: string }
+ */
+function wellweb_notify_environment(): array {
+    $current  = wellweb_notify_normalize_host( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+    $recorded = wellweb_notify_production_domain();
+    $type     = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+
+    if ( $type !== 'production' ) {
+        $reason = 'environment';
+    } elseif ( $recorded !== '' ) {
+        $reason = $current === $recorded ? 'domain-match' : 'domain-mismatch';
+    } else {
+        $reason = wellweb_notify_host_looks_like_staging( $current ) ? 'host-pattern' : 'unrecorded';
+    }
+
+    return array(
+        'production' => wellweb_notify_is_production(),
+        'current'    => $current,
+        'recorded'   => $recorded,
+        'type'       => $type,
+        'reason'     => $reason,
+    );
+}
+
+/**
+ * Record the live domain the first time an admin opens WordPress on it.
+ *
+ * Only when nothing is recorded yet, the environment type is `production` and
+ * the host does not look like staging — so a staging copy never claims the
+ * role. After that the field is the admin's to change.
+ */
+add_action( 'admin_init', 'wellweb_notify_claim_production_domain' );
+function wellweb_notify_claim_production_domain() {
+    if ( ! current_user_can( 'manage_options' ) || wellweb_notify_production_domain() !== '' ) {
+        return;
+    }
+    if ( function_exists( 'wp_get_environment_type' ) && wp_get_environment_type() !== 'production' ) {
+        return;
+    }
+
+    $current = wellweb_notify_normalize_host( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+    if ( $current === '' || wellweb_notify_host_looks_like_staging( $current ) ) {
+        return;
+    }
+
+    update_option( 'well-web-notify-production-domain', $current );
+}
+
+/**
+ * Sanitise the production domain field: a bare host, or empty.
+ */
+function wellweb_notify_sanitize_domain( $value ): string {
+    return wellweb_notify_normalize_host( sanitize_text_field( (string) $value ) );
+}
+
+/**
+ * Where a failed check is reported. Falls back to the site admin email.
+ */
+function wellweb_notify_alert_email(): string {
+    $email = sanitize_email( (string) wellweb_notify_get_option( 'alert-email', '' ) );
+    return $email !== '' ? $email : (string) get_option( 'admin_email', '' );
+}
+
 /**
  * Build contact link URLs for a normalized phone number.
  *

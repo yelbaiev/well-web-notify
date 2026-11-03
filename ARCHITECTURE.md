@@ -39,7 +39,8 @@ WellWeb_Notify_Channel_Manager::send_all()
 | `includes/section-*.php` | One settings section each |
 | `includes/screen-activity.php` | The delivery log screen |
 | `includes/admin-settings.php` | Which options exist, how they are sanitised, the test endpoint |
-| `includes/class-health-check.php` | A daily cron that proves each channel is still reachable |
+| `includes/class-health-check.php` | The daily silent connection check, and the opt-in weekly summary |
+| `includes/section-monitoring.php` | The Monitoring section: live domain, alert email, weekly summary switch, last check |
 | `includes/class-site-verify.php` | The `/verify <token>` command that ties a Telegram group to this site |
 
 ## Field normalisation, and why it is centralised
@@ -107,7 +108,7 @@ Two sidebar rows under one top-level item:
 
 | Screen | Slug | Holds |
 |---|---|---|
-| Settings | `well-web-notify-settings` | Channels, Sources, Message — three sections with a sticky index, the pattern Well Web SEO uses for its own Settings page |
+| Settings | `well-web-notify-settings` | Channels, Sources, Message, Monitoring — sections with a sticky index, the pattern Well Web SEO uses for its own Settings page |
 | Activity | `well-web-notify-log` | The delivery log: counters, filters, table, pager |
 
 Both slugs are the ones this plugin has had since 1.0.0, so every link that ever
@@ -233,6 +234,70 @@ server-side via `parent_file` / `submenu_file`, and that script ran afterwards
 and overrode it — including for Well Web SEO, whose nav depends on those
 filters. Do not reintroduce it.
 
+## Monitoring: live site vs staging, and the silent check
+
+### Which copy is the live site
+
+Most client sites have a staging copy, the plugin is deployed to both by CI,
+and staging is refreshed by copying the live database. So a stored "this is
+production" flag would be copied to staging on the first sync and be wrong.
+`wellweb_notify_is_production()` uses two signals a database copy cannot carry:
+
+1. `wp_get_environment_type()` — from `wp-config.php` or the host. Anything but
+   `production` is not production.
+2. `well-web-notify-production-domain`, compared with the host this request is
+   running on. The copied value names the live domain, which staging is not.
+
+With no domain recorded, a host matching a staging pattern (`staging.*`,
+`dev-*`, `*.mystagingwebsite.com`, `*.kinsta.cloud`, `*.wpengine.com`, …, see
+`wellweb_notify_host_looks_like_staging()`) is staging. On `admin_init`, a
+manager on a production-type, non-staging-looking host with nothing recorded
+claims the domain. The filter `wellweb_notify_is_production` has the last word.
+
+What depends on it:
+
+| On staging | Behaviour |
+|---|---|
+| Form and order notifications | Still sent; `WellWeb_Notify_Message::build()` prefixes the headline with `[Staging]` and sets `$meta['staging']` |
+| Daily check | Returns early, stores empty results |
+| Weekly summary | Not sent |
+| Settings screen | Header meta says "Staging copy"; Monitoring explains why |
+
+### The daily check posts nothing
+
+Cron `wellweb_notify_health_check`, daily ~06:00 UTC. For each active channel:
+
+1. A successful real delivery in the last 24 h (`WellWeb_Notify_Log::count_deliveries()`,
+   which excludes the `Test`, `Health Check` and `Weekly summary` rows) counts
+   as a pass, and the channel is not contacted.
+2. Otherwise `check_connection()`, if the channel class has one. It is
+   duck-typed rather than added to `WellWeb_Notify_Channel`, so third-party
+   channels keep working; one without it is recorded as `skipped`.
+
+| Channel | `check_connection()` |
+|---|---|
+| Telegram | `getMe`, `getChat`, then `getChatMember` for the bot: fails if it left, was kicked, was muted, or is not admin in a channel |
+| Discord | `GET` on the webhook URL, which returns the webhook without posting |
+| Slack | `POST {}`: a live webhook rejects it as 400 `no_text`/`invalid_payload`; a dead one answers 403/404/410 |
+| Google Chat | `POST {}`: a live webhook rejects it as 400 `INVALID_ARGUMENT` about the message; a dead one answers 401/403/404 or a 400 about the key |
+
+The Slack and Google Chat probes rely on how those services reject an empty
+message, not on a documented read endpoint (neither has one).
+
+Results go to `well-web-notify-health-results`. Only failures are written to
+the log. Failures are emailed to `wellweb_notify_alert_email()`:
+`well-web-notify-alert-email`, falling back to `admin_email`.
+
+### Weekly summary
+
+Cron `wellweb_notify_weekly_summary`, Mondays ~07:00 UTC, only if
+`well-web-notify-weekly-summary` is on and the site is production. Each active
+channel gets its own count of real deliveries in 7 days. The message is built
+with `silent => true`: Telegram sends with `disable_notification`, Discord with
+`flags: 4096` (SUPPRESS_NOTIFICATIONS); Slack and Google Chat have no
+equivalent. Sends are logged as `Weekly summary`; a failed send is emailed like
+a failed check.
+
 ## Credentials
 
 Tokens and webhook URLs are stored encrypted (AES-256-CTR + HMAC-SHA256, key
@@ -250,6 +315,10 @@ itself is empty. An empty submission leaves the stored value alone, via the
 | `wellweb_notify_message` | Last word on what a notification contains |
 | `wellweb_notify_show_pro_teasers` | Hide the Viber/WhatsApp note |
 | `wellweb_notify_sections` | Add a section to the screen, or take one away |
+| `wellweb_notify_is_production` | Override whether this site counts as the live one |
+
+A channel class may also implement `check_connection(): true|WP_Error` to take
+part in the silent daily check.
 
 A third-party channel written against the old `send( $subject, $body, $meta )`
 signature still works: `$body` carries a plain-text rendering of the same

@@ -135,6 +135,46 @@ class WellWeb_Notify_Google_Chat implements WellWeb_Notify_Channel {
         return wellweb_notify_get_encrypted( 'google-chat-webhook' );
     }
 
+    /**
+     * Prove the webhook is still live, without posting to it.
+     *
+     * Like Slack, Google Chat has no read endpoint for a webhook, so this posts
+     * an EMPTY message, which is refused before anything is delivered. A live
+     * webhook refuses it as 400 INVALID_ARGUMENT about the message; a deleted
+     * webhook or space, or a bad key or token, answers 401/403/404 — or 400
+     * naming the key, which is why that case is excluded.
+     *
+     * @return true|WP_Error
+     */
+    public function check_connection() {
+        $webhook = $this->get_webhook();
+        if ( empty( $webhook ) ) {
+            return new WP_Error( 'not_configured', __( 'Google Chat is not configured.', 'well-web-notify' ) );
+        }
+
+        $response = wp_remote_post( $webhook, array(
+            'timeout' => 15,
+            'headers' => array( 'Content-Type' => 'application/json; charset=UTF-8' ),
+            'body'    => '{}',
+        ) );
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        $raw  = wp_remote_retrieve_body( $response );
+        $body = json_decode( $raw, true );
+
+        $status  = (string) ( $body['error']['status'] ?? '' );
+        $message = (string) ( $body['error']['message'] ?? '' );
+
+        if ( $code === 400 && $status === 'INVALID_ARGUMENT' && stripos( $message, 'key' ) === false ) {
+            return true;
+        }
+
+        return new WP_Error( 'google_chat_error', "HTTP {$code}: " . ( $message !== '' ? $message : $raw ) );
+    }
+
     private function handle_response( $response ) {
         if ( is_wp_error( $response ) ) {
             return $response;

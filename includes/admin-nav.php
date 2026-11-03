@@ -167,6 +167,10 @@ function wellweb_notify_sections(): array {
             'label'  => __( 'Message', 'well-web-notify' ),
             'render' => 'wellweb_notify_section_message',
         ),
+        'monitoring' => array(
+            'label'  => __( 'Monitoring', 'well-web-notify' ),
+            'render' => 'wellweb_notify_section_monitoring',
+        ),
     );
 
     /**

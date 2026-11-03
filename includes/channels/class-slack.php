@@ -182,6 +182,42 @@ class WellWeb_Notify_Slack implements WellWeb_Notify_Channel {
         return wellweb_notify_get_encrypted( 'slack-webhook' );
     }
 
+    /**
+     * Prove the webhook is still live, without posting to it.
+     *
+     * Slack has no read endpoint for an incoming webhook, so this posts an
+     * EMPTY payload, which Slack refuses before delivering anything. A live
+     * webhook refuses it as 400 `no_text` / `invalid_payload`; a revoked one
+     * answers 403 `invalid_token`, 404 `no_service`, or 410 for an archived
+     * channel — which is the difference this is looking for.
+     *
+     * @return true|WP_Error
+     */
+    public function check_connection() {
+        $webhook = $this->get_webhook();
+        if ( empty( $webhook ) ) {
+            return new WP_Error( 'not_configured', __( 'Slack is not configured.', 'well-web-notify' ) );
+        }
+
+        $response = wp_remote_post( $webhook, array(
+            'timeout' => 15,
+            'headers' => array( 'Content-Type' => 'application/json' ),
+            'body'    => '{}',
+        ) );
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        $body = trim( wp_remote_retrieve_body( $response ) );
+
+        if ( $code === 400 && in_array( $body, array( 'no_text', 'invalid_payload', 'missing_text_or_fallback_or_attachments' ), true ) ) {
+            return true;
+        }
+
+        return new WP_Error( 'slack_error', "HTTP {$code}: {$body}" );
+    }
+
     private function handle_response( $response ) {
         if ( is_wp_error( $response ) ) {
             return $response;

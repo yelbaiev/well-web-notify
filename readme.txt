@@ -4,7 +4,7 @@ Tags: telegram, slack, discord, notifications, forms
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,7 +33,9 @@ Well Web Notify sends instant notifications to Telegram, Slack, Discord, and Goo
 * WooCommerce order notifications with configurable events (new order, processing, completed, cancelled, refunded, failed)
 * Phone numbers in submissions get clickable contact links (Call, WhatsApp, Telegram, Viber)
 * Notification log with filtering and pagination
-* Daily bot health check verifies your Telegram bot is working
+* Silent daily connection check: confirms each channel can still deliver without posting to the chat, and emails you if one can't
+* Optional weekly summary in the chat, delivered without a notification sound
+* Staging copies are detected automatically: checks run only on the live site, and staging notifications are marked [Staging]
 * Lightweight — no bloat, no external CSS/JS dependencies
 
 **Need Viber or WhatsApp?**
@@ -46,28 +48,28 @@ This plugin connects to the following external services:
 
 **Telegram Bot API**
 
-When you configure a Telegram bot token and chat ID, the plugin sends notification messages via the Telegram Bot API at `https://api.telegram.org/`. This happens whenever a form is submitted, a WooCommerce order event occurs, or a daily health check runs.
+When you configure a Telegram bot token and chat ID, the plugin sends notification messages via the Telegram Bot API at `https://api.telegram.org/`. This happens whenever a form is submitted, a WooCommerce order event occurs, or the optional weekly summary is sent. Once a day the plugin also calls `getMe`, `getChat` and `getChatMember` to confirm the bot can still post to the chat. These calls send no message.
 
 * [Telegram Terms of Service](https://telegram.org/tos)
 * [Telegram Privacy Policy](https://telegram.org/privacy)
 
 **Slack API**
 
-When you configure a Slack Incoming Webhook URL, the plugin sends notification messages to your Slack workspace via `https://hooks.slack.com/`.
+When you configure a Slack Incoming Webhook URL, the plugin sends notification messages to your Slack workspace via `https://hooks.slack.com/`. Once a day it also posts an empty payload to the webhook, which Slack rejects without delivering anything, to confirm the webhook is still live.
 
 * [Slack Terms of Service](https://slack.com/terms-of-service)
 * [Slack Privacy Policy](https://slack.com/privacy-policy)
 
 **Discord API**
 
-When you configure a Discord Webhook URL, the plugin sends notification messages to your Discord server via `https://discord.com/api/webhooks/`.
+When you configure a Discord Webhook URL, the plugin sends notification messages to your Discord server via `https://discord.com/api/webhooks/`. Once a day it also reads the webhook (a GET request, which posts nothing) to confirm it still exists.
 
 * [Discord Terms of Service](https://discord.com/terms)
 * [Discord Privacy Policy](https://discord.com/privacy)
 
 **Google Chat API**
 
-When you configure a Google Chat Webhook URL, the plugin sends notification messages to your Google Chat space via `https://chat.googleapis.com/`.
+When you configure a Google Chat Webhook URL, the plugin sends notification messages to your Google Chat space via `https://chat.googleapis.com/`. Once a day it also posts an empty message to the webhook, which Google Chat rejects without delivering anything, to confirm the webhook is still live.
 
 * [Google Terms of Service](https://policies.google.com/terms)
 * [Google Privacy Policy](https://policies.google.com/privacy)
@@ -112,6 +114,12 @@ Fixed in 1.0.6 and hardened in 1.0.7. Jetpack fires several signals per submissi
 2. Delivery log — a seven-day summary, filterable by channel and result
 
 == Changelog ==
+
+= 1.0.8 =
+* Changed: the daily connection check no longer posts a message to the chat. It asks each service whether the bot or webhook can still deliver, and emails you if not
+* Added: a Monitoring section in Settings with the live domain, an alert email for failed checks, and the result of the last check
+* Added: staging copies are detected automatically. Checks and summaries run only on the live site, and staging notifications are marked [Staging]
+* Added: an optional weekly summary in the chat, delivered without a notification sound in Telegram and Discord
 
 = 1.0.7 =
 * Fixed: a Jetpack submission can no longer arrive in Telegram (or any channel) with only the phone number. If the complete field set was not handed over during the request, the plugin reads it back from Jetpack's saved entry before sending

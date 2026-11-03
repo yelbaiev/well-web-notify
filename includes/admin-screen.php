@@ -44,6 +44,10 @@ function wellweb_notify_render_screen(): void {
         count( $channels )
     ) );
 
+    if ( ! wellweb_notify_is_production() ) {
+        $meta .= ' · ' . esc_html__( 'Staging copy', 'well-web-notify' );
+    }
+
     wellweb_notify_page_open( __( 'Well Web Notify', 'well-web-notify' ), array( 'meta' => $meta ) );
     ?>
 

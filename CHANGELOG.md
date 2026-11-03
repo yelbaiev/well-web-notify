@@ -1,5 +1,15 @@
 # Well Web Notify - Changelog
 
+## Version 1.0.8
+
+- Changed: the daily connection check no longer posts "Daily health check" into the chat. It asks Telegram, Slack, Discord or Google Chat whether the bot or webhook can still deliver, without sending a message, and skips a channel that delivered a real notification in the last 24 hours.
+- Added: a **Monitoring** section in Settings with the live domain, an alert email for failed checks, and the result of the last check.
+- Added: staging copies are detected automatically, from WordPress's environment type and the recorded live domain, so a database copied from the live site doesn't fool it. Daily checks and summaries only run on the live site.
+- Added: form notifications sent from a staging copy are still delivered, but their headline starts with [Staging].
+- Added: an optional weekly summary posted each Monday to every connected chat, saying how many notifications arrived that week. Telegram and Discord deliver it without a notification sound.
+- Changed: failed-check emails go to the new alert email, falling back to the site admin email, and say that nothing was posted to the chat.
+- Changed: successful daily checks are no longer written to the Activity log; only failures are.
+
 ## Version 1.0.7
 
 - Fixed: a Jetpack submission can no longer arrive with only the phone number and no name. If the complete field set was not handed over during the request, the plugin now reads it back from Jetpack's saved entry before sending.

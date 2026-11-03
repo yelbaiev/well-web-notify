@@ -199,7 +199,8 @@ class WellWeb_Notify_Message {
      * Build the `$meta` payload channels render.
      *
      * @param array $args {
-     *   @type string $kind       'form' | 'order' | 'test' | 'health'
+     *   @type string $kind       'form' | 'order' | 'test' | 'health' | 'summary'
+     *   @type bool   $silent     Ask the channel to deliver without a sound, where it can.
      *   @type string $title      Headline, e.g. "New form submission".
      *   @type string $form_name  Which form or order this is.
      *   @type array  $fields     Raw fields, pre-normalisation.
@@ -230,9 +231,22 @@ class WellWeb_Notify_Message {
             }
         }
 
+        $title = (string) ( $args['title'] ?? __( 'New form submission', 'well-web-notify' ) );
+
+        // A staging copy still delivers — forms there get tested — but says so
+        // in the headline, so a test enquiry in the client's group is never
+        // mistaken for a real lead.
+        $staging = ! wellweb_notify_is_production();
+        if ( $staging ) {
+            /* translators: %s: notification headline */
+            $title = sprintf( __( '[Staging] %s', 'well-web-notify' ), $title );
+        }
+
         $meta = array(
             'kind'       => (string) ( $args['kind'] ?? 'form' ),
-            'title'      => (string) ( $args['title'] ?? __( 'New form submission', 'well-web-notify' ) ),
+            'title'      => $title,
+            'staging'    => $staging,
+            'silent'     => ! empty( $args['silent'] ),
             'form_name'  => $form_name,
             'site'       => wellweb_notify_site_domain(),
             'site_url'   => home_url(),

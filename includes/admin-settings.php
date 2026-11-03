@@ -57,6 +57,19 @@ function wellweb_notify_register_settings() {
         'sanitize_callback' => 'absint',
     ) );
 
+    // Monitoring
+    register_setting( WELLWEB_NOTIFY_SETTINGS_GROUP, 'well-web-notify-production-domain', array(
+        'sanitize_callback' => 'wellweb_notify_sanitize_domain',
+    ) );
+    register_setting( WELLWEB_NOTIFY_SETTINGS_GROUP, 'well-web-notify-alert-email', array(
+        'sanitize_callback' => 'sanitize_email',
+    ) );
+    register_setting( WELLWEB_NOTIFY_SETTINGS_GROUP, WellWeb_Notify_Health_Check::OPTION_SUMMARY_ON, array(
+        'type'              => 'boolean',
+        'default'           => false,
+        'sanitize_callback' => 'wellweb_notify_sanitize_checkbox',
+    ) );
+
     register_setting( WELLWEB_NOTIFY_SETTINGS_GROUP, 'well-web-notify-woo-enabled', array(
         'type'              => 'boolean',
         'default'           => false,

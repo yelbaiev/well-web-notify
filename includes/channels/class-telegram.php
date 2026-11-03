@@ -77,10 +77,90 @@ class WellWeb_Notify_Telegram implements WellWeb_Notify_Channel {
                 'text'                     => $text,
                 'parse_mode'               => 'HTML',
                 'disable_web_page_preview' => true,
+                // The weekly summary arrives without a sound: worth reading,
+                // not worth interrupting anyone for.
+                'disable_notification'     => ! empty( $meta['silent'] ),
             ),
         ) );
 
         return $this->handle_response( $response );
+    }
+
+    /**
+     * Prove the bot can still post to the chat, without posting to it.
+     *
+     * getMe proves the token; getChat proves the chat exists and the bot can
+     * see it; getChatMember on the bot itself proves it has not been removed,
+     * muted, or (in a channel) left without admin rights.
+     *
+     * @return true|WP_Error
+     */
+    public function check_connection() {
+        if ( ! $this->is_configured() ) {
+            return new WP_Error( 'not_configured', __( 'Telegram is not configured.', 'well-web-notify' ) );
+        }
+
+        $me = $this->api( 'getMe' );
+        if ( is_wp_error( $me ) ) {
+            return $me;
+        }
+
+        $chat_id = $this->get_chat_id();
+        $chat    = $this->api( 'getChat', array( 'chat_id' => $chat_id ) );
+        if ( is_wp_error( $chat ) ) {
+            return $chat;
+        }
+
+        // In a one-to-one chat there is no membership to check.
+        if ( ( $chat['type'] ?? '' ) === 'private' ) {
+            return true;
+        }
+
+        $member = $this->api( 'getChatMember', array(
+            'chat_id' => $chat_id,
+            'user_id' => (int) ( $me['id'] ?? 0 ),
+        ) );
+        if ( is_wp_error( $member ) ) {
+            return $member;
+        }
+
+        $status = $member['status'] ?? '';
+
+        if ( in_array( $status, array( 'left', 'kicked' ), true ) ) {
+            return new WP_Error( 'telegram_removed', __( 'The bot is no longer a member of the chat. Add it back to the group.', 'well-web-notify' ) );
+        }
+        if ( $status === 'restricted' && empty( $member['can_send_messages'] ) ) {
+            return new WP_Error( 'telegram_muted', __( 'The bot is in the chat but is not allowed to send messages.', 'well-web-notify' ) );
+        }
+        if ( ( $chat['type'] ?? '' ) === 'channel' && ! in_array( $status, array( 'administrator', 'creator' ), true ) ) {
+            return new WP_Error( 'telegram_not_admin', __( 'The bot must be an administrator to post in a channel.', 'well-web-notify' ) );
+        }
+
+        return true;
+    }
+
+    /**
+     * One Bot API call that returns its `result`, or the reason it failed.
+     *
+     * @return array|WP_Error
+     */
+    private function api( string $method, array $params = array() ) {
+        $response = wp_remote_post( self::API_URL . $this->get_token() . '/' . $method, array(
+            'timeout' => 15,
+            'body'    => $params,
+        ) );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+        if ( ! empty( $body['ok'] ) && is_array( $body['result'] ?? null ) ) {
+            return $body['result'];
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        return new WP_Error( 'telegram_error', $body['description'] ?? "HTTP {$code}" );
     }
 
     public function send_test() {
